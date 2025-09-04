@@ -1,0 +1,28 @@
+services:
+  # The FuelPHP application service using a custom build
+  app:
+    build: .
+    container_name: amipro
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/vhost.conf:/etc/apache2/sites-available/000-default.conf
+    depends_on:
+      - db
+
+  # The MySQL Database service
+  db:
+    image: mysql:8.0
+    container_name: amipro_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: amipro_db
+      MYSQL_USER: amipro_user
+      MYSQL_PASSWORD: amipro_pass
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

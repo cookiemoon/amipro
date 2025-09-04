@@ -1,0 +1,316 @@
+/**
+ * Authentication Pages CSS (Login & Registration)
+ * Place this file at: public/assets/css/auth.css
+ * Unified styling for both login and registration pages
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f9fafb;
+}
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Gradient Header */
+.header {
+    width: 100%;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(90deg, #ff69b4 0%, #87ceeb 100%);
+}
+
+.header h1 {
+    color: white;
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    width: 100%;
+    background-color: #f9fafb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4rem;
+}
+
+.login-title, .registration-title {
+    font-size: 1.5rem;
+    color: #374151;
+    margin-bottom: 3rem;
+    font-weight: 400;
+}
+
+/* Alert Messages */
+.alert {
+    width: 288px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.alert-error {
+    background-color: #fecaca;
+    color: #dc2626;
+    border: 1px solid #f87171;
+}
+
+.alert-success {
+    background-color: #d1fae5;
+    color: #059669;
+    border: 1px solid #6ee7b7;
+}
+
+/* Form Styles */
+.login-form, .registration-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.input-group {
+    position: relative;
+    width: 288px;
+    margin-bottom: 1.5rem;
+}
+
+/* Login specific input spacing */
+body.login-page .input-group.password {
+    margin-bottom: 2rem;
+}
+
+/* Registration specific input spacing */
+body.register-page .input-group.password {
+    margin-bottom: 1.5rem;
+}
+
+body.register-page .input-group.password-confirm {
+    margin-bottom: 1rem;
+}
+
+.form-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 1rem;
+    background-color: #e5e7eb;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+    color: #374151;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.form-input:focus {
+    background-color: #d1d5db;
+}
+
+.form-input::placeholder {
+    color: #6b7280;
+}
+
+.form-label {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    background-color: transparent;
+    padding: 0 4px;
+}
+
+.form-input:focus + .form-label,
+.form-input:not(:placeholder-shown) + .form-label {
+    top: -8px;
+    font-size: 12px;
+    color: #4b5563;
+    background-color: #f9fafb;
+}
+
+/* Password Requirements (Registration only) */
+.password-requirements {
+    width: 288px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.requirements-text {
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Continue Button */
+.continue-button {
+    width: 192px;
+    height: 48px;
+    background-color: #4b5563;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-bottom: 2rem;
+}
+
+.continue-button:hover {
+    background-color: #374151;
+}
+
+.continue-button:active {
+    background-color: #1f2937;
+}
+
+.continue-button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.loading {
+    display: none;
+    margin-left: 8px;
+}
+
+/* Navigation Links */
+.registration-link, .login-link {
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.registration-link a.gradient-text,
+.login-link a.gradient-text {
+    background: linear-gradient(90deg, #ff69b4 0%, #87ceeb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.registration-link a.gradient-text:hover,
+.login-link a.gradient-text:hover {
+    opacity: 0.8;
+}
+
+/* Error Messages */
+.error-message {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
+.input-group.error .form-input {
+    background-color: #fecaca;
+    border: 1px solid #dc2626;
+}
+
+.input-group.error .error-message {
+    display: block;
+}
+
+/* Success States */
+.input-group.success .form-input {
+    background-color: #d1fae5;
+    border: 1px solid #059669;
+}
+
+/* Password Strength Indicator (Optional Enhancement) */
+.password-strength {
+    width: 100%;
+    margin-top: 4px;
+    display: none;
+}
+
+.password-strength.show {
+    display: block;
+}
+
+.strength-bar {
+    height: 3px;
+    background-color: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    background-color: #dc2626;
+}
+
+.strength-fill.weak {
+    background-color: #dc2626;
+}
+
+.strength-fill.medium {
+    background-color: #f59e0b;
+}
+
+.strength-fill.strong {
+    background-color: #059669;
+}
+
+.strength-text {
+    font-size: 11px;
+    margin-top: 2px;
+    color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .input-group {
+        width: 260px;
+    }
+
+    .password-requirements {
+        width: 260px;
+    }
+
+    .continue-button {
+        width: 170px;
+    }
+
+    .main-content {
+        padding-top: 2rem;
+    }
+
+    .login-title, .registration-title {
+        margin-bottom: 2rem;
+    }
+
+    .alert {
+        width: 260px;
+    }
+}

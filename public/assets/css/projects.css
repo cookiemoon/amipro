@@ -1,0 +1,343 @@
+
+ * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f0f0f0;
+}
+
+.container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #f0f0f0;
+}
+
+/* Gradient Header */
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 96px;
+    background: linear-gradient(90deg, #ff69b4 0%, #87ceeb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 2rem;
+    z-index: 1;
+}
+
+.header h1 {
+    color: white;
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* "Copier Tab" Styling */
+.navigation-tabs {
+    position: absolute;
+    top: 64px;
+    left: 16px;
+    display: flex;
+    z-index: 3;
+}
+
+.tab {
+    text-decoration: none;
+    position: relative;
+    color: #6b7280;
+    padding: 8px 16px;
+    background-color: #d1d5db;
+    border: 1px solid #9ca3af;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    font-weight: 500;
+    text-align: center;
+}
+
+.tab.project-tab {
+    width: 120px;
+}
+
+.tab.yarn-tab {
+    width: 80px;
+}
+
+.tab.active {
+    color: #374151;
+    background-color: #ffffff;
+    border-bottom: 1px solid #ffffff;
+    margin-bottom: -1px;
+    z-index: 4;
+}
+
+/* Main Content Area */
+.main-content-area {
+    position: absolute;
+    top: 96px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ffffff;
+    border-top: 1px solid #9ca3af;
+    z-index: 2;
+    overflow-y: auto; /* Allow content to scroll */
+    padding: 1.5rem 2rem;
+}
+
+
+/* Controls Section */
+.controls-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Search */
+.search-container {
+    position: relative;
+    width: 240px;
+    height: 40px;
+}
+.search-input {
+    width: 100%;
+    height: 100%;
+    background: #f3f4f6;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    outline: none;
+    padding: 0 1rem;
+    font-size: 14px;
+    color: #374151;
+}
+
+/* Filter Button */
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filter-toggle {
+    width: 100px;
+    height: 40px;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* Filter Panel */
+.filter-panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-options h3 {
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.filter-group {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.sample-project {
+    position: relative;
+    background-color: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+    grid-column: 1 / -1; /* Make it span all columns */
+}
+
+.empty-state p {
+    margin-bottom: 1rem;
+    font-size: 16px;
+}
+
+.create-project-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: rgb(138, 138, 200);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* FAB */
+.create-project-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 30;
+}
+
+.fab-button {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgb(138, 138, 200);
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 300;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.projects-container {
+    display: flex;
+    width: 100%;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
+    gap: 1rem; 
+    padding: 1rem;
+}
+
+/* Styles for the new project card layout */
+.project-card {
+    display: flex;
+    align-items: center;
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.project-image {
+    width: 120px;
+    height: 90px;
+    flex-shrink: 0;
+    margin-right: 1rem;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #e0e0e0;
+}
+
+.project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 0.8rem;
+}
+
+.project-details {
+    flex-grow: 1;
+}
+
+.project-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.project-status {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0 0 0.5rem 0;
+}
+
+.detail-link {
+    margin-left: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: rgb(138, 138, 200);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+/* Styles for the new progress bar */
+.progress-bar-container {
+    height: 8px;
+    width: 20%;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #87ceeb 0%, #ff69b4 100%);
+    border-radius: 4px;
+}
+
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px; /* This creates the "pill" shape */
+    font-size: 0.75rem; /* 12px */
+    font-weight: 500;
+}
+
+.type-tag {
+    background-color: rgb(244,181,235); /* Pink */
+    color: rgb(173,76,119);
+}
+
+.tech-tag {
+    background-color: rgb(176,203,251); /* Blue */
+    color: rgb(62,88,152);
+}
