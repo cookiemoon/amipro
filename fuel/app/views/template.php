@@ -1,43 +1,34 @@
-<?php
-/**
- * FuelPHP Main Template
- * Place this file at: fuel/app/views/template.php
- */
-?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($title) ? $title : 'あみぷろ'; ?></title>
+    <meta name="csrf-token-key" content="<?php echo \Config::get('security.csrf_token_key'); ?>">
+    <meta name="csrf-token" content="<?php echo \Security::fetch_token(); ?>">
     
-    <?php if (isset($css)): ?>
-        <?php foreach ((array)$css as $css_file): ?>
-            <link rel="stylesheet" href="<?php echo Uri::create('assets/css/' . $css_file); ?>">
-        <?php endforeach; ?>
-    <?php endif; ?>
+    <?php // This dynamically loads the correct CSS file(s)
+    if (isset($css)):
+        echo \Asset::css($css);
+    endif;
+    ?>
     
-    <!-- Additional head content -->
-    <?php if (isset($head)): ?>
-        <?php echo $head; ?>
-    <?php endif; ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
 </head>
-<body>
-
-
-    <!-- Main Content -->
-    <?php echo isset($content) ? $content : ''; ?>
+<body data-base-url="<?php echo \Uri::base(); ?>">
     
-    <!-- JavaScript Files -->
-    <?php if (isset($js)): ?>
-        <?php foreach ((array)$js as $js_file): ?>
-            <script src="<?php echo Uri::create('assets/js/' . $js_file); ?>"></script>
-        <?php endforeach; ?>
-    <?php endif; ?>
-    
-    <!-- Additional scripts -->
-    <?php if (isset($scripts)): ?>
-        <?php echo $scripts; ?>
-    <?php endif; ?>
+    <div class="container">
+        <div class="header">
+            <h1>あみぷろ</h1>
+        </div>
+        
+        <?php echo isset($content) ? $content : ''; ?>
+    </div>
+
+    <?php // This dynamically loads the correct JavaScript file
+    if (isset($js)):
+        echo \Asset::js($js);
+    endif;
+    ?>
 </body>
 </html>

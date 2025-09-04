@@ -1,8 +1,4 @@
 <?php
-/**
- * User Model
- * This file has been REFACTORED to remove validation logic.
- */
 
 class Model_User extends \Orm\Model
 {
@@ -26,7 +22,12 @@ class Model_User extends \Orm\Model
     {
         // Hash the password before creating the user object
         // Hashed password is more secure since we cannot access the original text
-        $hashed_password = \Auth::hash_password($password);
+        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+
+        // Check if username already exists
+        if (static::username_exists($username)) {
+            return false;
+        }
 
         // Create a new User object
         $user = static::forge([
@@ -47,23 +48,15 @@ class Model_User extends \Orm\Model
     public static function authenticate($username, $password)
     {
         // Validate user manually
-        $hashed_password = \Auth::hash_password($password);
+        $user = static::query()->where('username', $username)->get_one();
 
-        // Check if corresponding user exists with username and pwd
-        $valid_credentials = static::query()
-            ->where('username', $username)
-            ->where('password', $hashed_password)
-            ->get_one();
-
-        if ($valid_credentials)
-        {
-            // If credentials are valid, perform the login.
-            // Force session since we aren't using auth package here
-            \Session::set('user_id', $valid_credentials->id);
-            return $valid_credentials->id;
+        if ($user && password_verify($password, $user->password)) {
+            // If the password is correct, set the session and return the user ID
+            \Log::debug('Password verified for user ID: ' . $user->id, __METHOD__);
+            \Session::set('user_id', $user->id);
+            return $user->id;
         }
 
-        // Invalid credentials mean username or password is incorrect
         return false;
     }
 
@@ -74,18 +67,5 @@ class Model_User extends \Orm\Model
     {
         $user = static::query()->where('username', $username)->get_one();
         return !empty($user);
-    }
-    
-    /**
-     * Custom validation rule for unique username
-     */
-    public static function _validation_unique_username($username)
-    {
-        if (static::username_exists($username))
-        {
-            \Validation::active()->set_message('unique_username', 'このユーザー名は既に使用されています。');
-            return false;
-        }
-        return true;
     }
 }

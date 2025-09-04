@@ -3,6 +3,7 @@
 class Model_Project extends \Orm\Model
 {
     protected static $_table_name = 'projects';
+
     protected static $_properties = [
         'id',
         'user_id',
@@ -27,16 +28,11 @@ class Model_Project extends \Orm\Model
     ];
 
     // Get all projects for a user with optional search and filters
-    public static function get_user_projects($user_id, $options = [])
+    public static function get_user_projects($user_id)
     {
 
         try {
             $query = static::query()->where('user_id', $user_id)->related('project_techniques');
-
-            // Apply search and filter conditions
-            static::apply_search_filters($query, $options);
-
-            $total_count = $query->count();
 
             $projects = $query->order_by('created_at', 'name')
                               ->get();
@@ -184,7 +180,6 @@ class Model_Project extends \Orm\Model
             ->execute()
             ->as_array();
         
-        // Flatten the array from [['object_type' => 'Hat']] to ['Hat' => 'Hat']
         $types = array_column($result, 'object_type');
         return array_combine($types, $types);
     }
@@ -203,7 +198,6 @@ class Model_Project extends \Orm\Model
             ->execute()
             ->as_array();
         
-        // Flatten the array from [['technique' => 'Cables']] to ['Cables' => 'Cables']
         $techniques = array_column($result, 'technique');
         return array_combine($techniques, $techniques);
     }

@@ -1,329 +1,132 @@
-/**
- * Authentication Pages JavaScript (Login & Registration)
- * Place this file at: public/assets/js/auth.js
- * Unified client-side validation and interactions for both pages
- */
+function AppViewModel() {
+    const self = this;
+    const baseUrl = document.body.dataset.baseUrl || '/';
+    const csrfTokenKey = document.querySelector('meta[name="csrf-token-key"]').getAttribute('content');
 
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Determine current page based on form presence
-    const loginForm = document.getElementById('loginForm');
-    const registrationForm = document.getElementById('registrationForm');
-    const isLoginPage = !!loginForm;
-    const isRegisterPage = !!registrationForm;
-    
-    // Add body class for page-specific styling
-    if (isLoginPage) {
-        document.body.classList.add('login-page');
-    } else if (isRegisterPage) {
-        document.body.classList.add('register-page');
-    }
-    
-    // Login Form Handling
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
+    // --- Login ViewModel ---
+    self.login = new function() {
+        const loginSelf = this;
+        loginSelf.username = ko.observable('');
+        loginSelf.password = ko.observable('');
+        loginSelf.serverErrorMessage = ko.observable(null);
+        loginSelf.isLoading = ko.observable(false);
+        loginSelf.buttonText = ko.computed(() => loginSelf.isLoading() ? '...' : '続く');
+
+        loginSelf.loginUser = function() {
+            loginSelf.isLoading(true);
+            loginSelf.serverErrorMessage(null);
             
-            // Clear previous errors
-            clearErrors();
-            
-            // Basic validation
-            let hasErrors = false;
-            
-            // Username validation
-            if (!username) {
-                showError('idGroup', 'usernameError', 'IDを入力してください');
-                hasErrors = true;
-            } else if (username.length > 50) {
-                showError('idGroup', 'usernameError', 'IDは50文字以内で入力してください');
-                hasErrors = true;
-            }
-            
-            // Password validation
-            if (!password) {
-                showError('passwordGroup', 'passwordError', 'パスワードを入力してください');
-                hasErrors = true;
-            } else if (password.length < 6) {
-                showError('passwordGroup', 'passwordError', 'パスワードは6文字以上で入力してください');
-                hasErrors = true;
-            }
-            
-            if (hasErrors) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Show loading state
-            showLoading();
-            
-            // Form will submit normally to FuelPHP controller
-            return true;
-        });
-    }
-    
-    // Registration Form Handling
-    if (registrationForm) {
-        registrationForm.addEventListener('submit', function(e) {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const passwordConfirm = document.getElementById('password_confirm').value.trim();
-            
-            // Clear previous errors
-            clearErrors();
-            
-            // Basic validation
-            let hasErrors = false;
-            
-            // Username validation
-            if (!username) {
-                showError('idGroup', 'usernameError', 'IDを入力してください');
-                hasErrors = true;
-            } else if (username.length < 3) {
-                showError('idGroup', 'usernameError', 'IDは3文字以上で入力してください');
-                hasErrors = true;
-            } else if (username.length > 50) {
-                showError('idGroup', 'usernameError', 'IDは50文字以内で入力してください');
-                hasErrors = true;
-            } else if (!/^[a-zA-Z0-9\-]+$/.test(username)) {
-                showError('idGroup', 'usernameError', 'IDは英数字とハイフンのみ使用できます');
-                hasErrors = true;
-            }
-            
-            // Password validation
-            if (!password) {
-                showError('passwordGroup', 'passwordError', 'パスワードを入力してください');
-                hasErrors = true;
-            } else if (password.length < 8) {
-                showError('passwordGroup', 'passwordError', 'パスワードは8文字以上で入力してください');
-                hasErrors = true;
-            } else if (password.length > 15) {
-                showError('passwordGroup', 'passwordError', 'パスワードは15文字以内で入力してください');
-                hasErrors = true;
-            } else if (!/^[a-zA-Z0-9]+$/.test(password)) {
-                showError('passwordGroup', 'passwordError', 'パスワードは英数字のみ使用できます');
-                hasErrors = true;
-            }
-            
-            // Password confirmation validation (registration only)
-            if (!passwordConfirm) {
-                showError('passwordConfirmGroup', 'passwordConfirmError', 'パスワード確認を入力してください');
-                hasErrors = true;
-            } else if (password !== passwordConfirm) {
-                showError('passwordConfirmGroup', 'passwordConfirmError', 'パスワードが一致しません');
-                hasErrors = true;
-            }
-            
-            if (hasErrors) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Show loading state
-            showLoading();
-            
-            // Form will submit normally to FuelPHP controller
-            return true;
-        });
-    }
-    
-    // Real-time validation setup
-    const usernameInput = document.getElementById('username');
-    if (usernameInput) {
-        usernameInput.addEventListener('blur', function() {
-            validateUsername();
-        });
-        
-        usernameInput.addEventListener('input', function() {
-            if (this.value.trim()) {
-                validateUsername();
-            } else {
-                clearFieldError('idGroup', 'usernameError');
-            }
-        });
-    }
-    
-    const passwordInput = document.getElementById('password');
-    if (passwordInput) {
-        passwordInput.addEventListener('blur', function() {
-            validatePassword();
-        });
-        
-        passwordInput.addEventListener('input', function() {
-            if (this.value.trim()) {
-                validatePassword();
-                if (isRegisterPage) {
-                    updatePasswordStrength(this.value);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const formData = new FormData();
+            formData.append('username', loginSelf.username());
+            formData.append('password', loginSelf.password());
+            formData.append(csrfTokenKey, csrfToken);
+
+            fetch(`${baseUrl}login`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `${baseUrl}projects`;
+                } else {
+                    loginSelf.serverErrorMessage(data.error || 'ログインに失敗しました。');
                 }
-            } else {
-                clearFieldError('passwordGroup', 'passwordError');
-                if (isRegisterPage) {
-                    hidePasswordStrength();
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                loginSelf.serverErrorMessage('エラーが発生しました。');
+            })
+            .finally(() => {
+                loginSelf.isLoading(false);
+            });
+        };
+    };
+
+    // --- Register ViewModel ---
+    self.register = new function() {
+        const regSelf = this;
+        regSelf.username = ko.observable('');
+        regSelf.password = ko.observable('');
+        regSelf.passwordConfirm = ko.observable('');
+        regSelf.serverErrorMessage = ko.observable(null);
+        regSelf.isLoading = ko.observable(false);
+        regSelf.buttonText = ko.computed(() => regSelf.isLoading() ? '...' : '続く');
+
+        // --- Real-time Validation Computeds ---
+        regSelf.usernameError = ko.computed(() => {
+            const u = regSelf.username();
+            var error = null;
+            if (u.length > 0 && u.length < 3) error = 'IDは3文字以上で入力してください。';
+            if (u.length > 50) error = 'IDは50文字以内で入力してください。';
+            return error;
+        });
+
+        regSelf.passwordError = ko.computed(() => {
+            const p = regSelf.password();
+            var error = null;
+            if (p.length > 0 && !/^[a-zA-Z0-9]+$/.test(p)) error = 'パスワードを正しく入力してください。';
+            if (p.length > 0 && p.length < 8) error = 'パスワードを正しく入力してください。';
+            if (p.length > 15) error = 'パスワードを正しく入力してください。';
+            return error;
+        });
+
+        regSelf.passwordConfirmError = ko.computed(() => {
+            var error = null;
+            if (regSelf.passwordConfirm().length > 0 && regSelf.password() !== regSelf.passwordConfirm()) {
+                error = 'パスワードが一致しません。';
+            }
+            return error;
+        });
+
+        // Computed to enable/disable the submit button
+        regSelf.isValid = ko.computed(() => {
+            return regSelf.username().length > 0 &&
+                   regSelf.password().length > 0 &&
+                   regSelf.passwordConfirm().length > 0 &&
+                   !regSelf.usernameError() &&
+                   !regSelf.passwordError() &&
+                   !regSelf.passwordConfirmError();
+        });
+        
+        regSelf.buttonText = ko.computed(() => regSelf.isLoading() ? '...' : '続く');
+        regSelf.registerUser = function() {
+            if (!regSelf.isValid()) return;
+
+            regSelf.isLoading(true);
+            regSelf.serverErrorMessage(null);
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const formData = new FormData();
+            formData.append('username', regSelf.username());
+            formData.append('password', regSelf.password());
+            formData.append('password_confirm', regSelf.passwordConfirm());
+            formData.append(csrfTokenKey, csrfToken);
+
+            fetch(`${baseUrl}register`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `${baseUrl}projects`;
+                } else {
+                    regSelf.serverErrorMessage(data.error || '登録に失敗しました。');
                 }
-            }
-            // Also re-validate password confirmation if on registration page
-            if (isRegisterPage) {
-                validatePasswordConfirm();
-            }
-        });
-    }
-    
-    // Password confirmation field (registration only)
-    const passwordConfirmInput = document.getElementById('password_confirm');
-    if (passwordConfirmInput) {
-        passwordConfirmInput.addEventListener('blur', function() {
-            validatePasswordConfirm();
-        });
-        
-        passwordConfirmInput.addEventListener('input', function() {
-            if (this.value.trim()) {
-                validatePasswordConfirm();
-            } else {
-                clearFieldError('passwordConfirmGroup', 'passwordConfirmError');
-            }
-        });
-    }
-    
-    // Validation Functions
-    function validateUsername() {
-        const username = usernameInput.value.trim();
-        
-        if (!username) {
-            showError('idGroup', 'usernameError', 'IDを入力してください');
-            return false;
-        } else if (isRegisterPage && username.length < 3) {
-            showError('idGroup', 'usernameError', 'IDは3文字以上で入力してください');
-            return false;
-        } else if (username.length > 50) {
-            showError('idGroup', 'usernameError', 'IDは50文字以内で入力してください');
-            return false;
-        } else if (isRegisterPage && !/^[a-zA-Z0-9\-]+$/.test(username)) {
-            showError('idGroup', 'usernameError', 'IDは英数字とハイフンのみ使用できます');
-            return false;
-        } else {
-            clearFieldError('idGroup', 'usernameError');
-            showSuccess('idGroup');
-            return true;
-        }
-    }
-    
-    function validatePassword() {
-        const password = passwordInput.value.trim();
-        const minLength = isRegisterPage ? 8 : 6;
-        
-        if (!password) {
-            showError('passwordGroup', 'passwordError', 'パスワードを入力してください');
-            return false;
-        } else if (password.length < minLength) {
-            showError('passwordGroup', 'passwordError', `パスワードは${minLength}文字以上で入力してください`);
-            return false;
-        } else if (isRegisterPage && password.length > 15) {
-            showError('passwordGroup', 'passwordError', 'パスワードは15文字以内で入力してください');
-            return false;
-        } else if (isRegisterPage && !/^[a-zA-Z0-9]+$/.test(password)) {
-            showError('passwordGroup', 'passwordError', 'パスワードは英数字のみ使用できます');
-            return false;
-        } else {
-            clearFieldError('passwordGroup', 'passwordError');
-            showSuccess('passwordGroup');
-            return true;
-        }
-    }
-    
-    function validatePasswordConfirm() {
-        if (!isRegisterPage || !passwordConfirmInput) return true;
-        
-        const password = passwordInput.value.trim();
-        const passwordConfirm = passwordConfirmInput.value.trim();
-        
-        if (!passwordConfirm) {
-            showError('passwordConfirmGroup', 'passwordConfirmError', 'パスワード確認を入力してください');
-            return false;
-        } else if (password !== passwordConfirm) {
-            showError('passwordConfirmGroup', 'passwordConfirmError', 'パスワードが一致しません');
-            return false;
-        } else {
-            clearFieldError('passwordConfirmGroup', 'passwordConfirmError');
-            showSuccess('passwordConfirmGroup');
-            return true;
-        }
-    }
-    
-    function updatePasswordStrength(password) {
-        // Simple password strength calculation
-        let strength = 0;
-        
-        if (password.length >= 8) strength += 25;
-        if (password.length >= 12) strength += 25;
-        if (/[a-z]/.test(password)) strength += 15;
-        if (/[A-Z]/.test(password)) strength += 15;
-        if (/[0-9]/.test(password)) strength += 20;
-        
-    }
-    
-    function hidePasswordStrength() {
-        // Hide password strength indicator if implemented
-    }
-    
-    function showError(groupId, errorId, message) {
-        const group = document.getElementById(groupId);
-        const errorElement = document.getElementById(errorId);
-        
-        if (group && errorElement) {
-            group.classList.remove('success');
-            group.classList.add('error');
-            errorElement.textContent = message;
-        }
-    }
-    
-    function showSuccess(groupId) {
-        const group = document.getElementById(groupId);
-        
-        if (group) {
-            group.classList.remove('error');
-            group.classList.add('success');
-        }
-    }
-    
-    function clearFieldError(groupId, errorId) {
-        const group = document.getElementById(groupId);
-        const errorElement = document.getElementById(errorId);
-        
-        if (group && errorElement) {
-            group.classList.remove('error');
-            group.classList.remove('success');
-            errorElement.textContent = '';
-        }
-    }
-    
-    function clearErrors() {
-        const errorGroups = document.querySelectorAll('.input-group.error');
-        const successGroups = document.querySelectorAll('.input-group.success');
-        const errorMessages = document.querySelectorAll('.error-message');
-        
-        errorGroups.forEach(group => group.classList.remove('error'));
-        successGroups.forEach(group => group.classList.remove('success'));
-        errorMessages.forEach(msg => msg.textContent = '');
-    }
-    
-    function showLoading() {
-        const continueBtn = document.getElementById('continueBtn');
-        const loading = document.getElementById('loading');
-        if (continueBtn && loading) {
-            continueBtn.disabled = true;
-            loading.style.display = 'inline';
-        }
-    }
-    
-    // Auto-hide alert messages after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function(alert) {
-        setTimeout(function() {
-            alert.style.opacity = '0';
-            setTimeout(function() {
-                alert.style.display = 'none';
-            }, 300);
-        }, 5000);
-    });
-    
-});
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                regSelf.serverErrorMessage('エラーが発生しました。');
+            })
+            .finally(() => {
+                regSelf.isLoading(false);
+            });
+        };
+    };
+}
+
+ko.applyBindings(new AppViewModel());

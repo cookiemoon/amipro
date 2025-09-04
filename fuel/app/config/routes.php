@@ -11,51 +11,33 @@
  */
 
 return array(
-    // Root redirect to login
-    '_root_' => 'auth/login',
-    
-    // Authentication routes
+    // --- Core Routes ---
+    '_root_'  => 'projects/index', // Send logged-in users to projects
+    '_404_'   => 'welcome/404',    // Your 404 page
+
+    // --- Authentication Routes ---
     'login' => 'auth/login',
     'register' => 'auth/register',
-    'auth/login' => 'auth/login',
-    'auth/process_login' => 'auth/process_login',
-    'auth/register' => 'auth/register',
-    'auth/process_register' => 'auth/process_register',
-    'auth/logout' => 'auth/logout',
+    'logout'  => 'auth/logout',
 
-    // Dashboard (after login) - redirect to projects
+    // --- Main Application Routes ---
     'dashboard' => 'projects/index',
 
-    // Project Management Routes
-    'projects' => 'projects/index',
-    'projects/index' => 'projects/index',
-    'projects/yarn' => 'projects/yarn',
-    'projects/create' => 'projects/create',
-    'projects/process_create' => 'projects/process_create',
-    'projects/detail/(:num)' => 'projects/detail/$1',
-    'projects/edit/(:num)' => 'projects/edit/$1',
-    'projects/update/(:num)' => 'projects/update/$1',
-    'projects/delete/(:num)' => 'projects/delete/$1',
-    
-    // AJAX Routes
-    'projects/filter' => 'projects/filter',
-    'projects/update_progress/(:num)' => 'projects/update_progress/$1',
-    
-    // Yarn Management Routes
-    'yarn' => 'projects/yarn',
-    'yarn/create' => 'yarn/create',
-    'yarn/edit/(:num)' => 'yarn/edit/$1',
-    'yarn/delete/(:num)' => 'yarn/delete/$1',
-    
-    // Static pages
-    'about' => 'pages/about',
-    'contact' => 'pages/contact',
-    
-    // API routes (if needed)
-    'api/auth/login' => 'api/auth/login',
-    'api/auth/register' => 'api/auth/register',
-    'api/auth/logout' => 'api/auth/logout',
-    
-    // Catch-all route (keep this last)
-    '_404_' => 'welcome/404',
+    // Project routes
+    'projects'                 => 'projects/index',
+    'projects/create'          => 'projects/create',
+    'projects/process_create'  => 'projects/process_create', // Keeps the form action
+    'projects/detail/(:num)'   => 'projects/detail/$1',
+    'projects/edit/(:num)'     => 'projects/edit/$1',
+    'projects/update/(:num)'   => 'projects/update/$1',
+    'projects/delete/(:num)'   => 'projects/delete/$1',
+
+    // Yarn routes (now correctly under the 'projects' controller)
+    'yarn'                     => 'projects/yarn',
+    'yarn/create'              => 'projects/add_yarn',
+    'yarn/process_create'      => 'projects/create_yarn',
+
+    // --- AJAX / API Routes ---
+    'projects/filter'          => 'projects/filter',
+    'projects/yarn_filter'     => 'projects/yarn_filter',
 );

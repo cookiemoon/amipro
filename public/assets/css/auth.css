@@ -223,7 +223,6 @@ body.register-page .input-group.password-confirm {
     color: #dc2626;
     font-size: 12px;
     margin-top: 4px;
-    display: none;
 }
 
 .input-group.error .form-input {
