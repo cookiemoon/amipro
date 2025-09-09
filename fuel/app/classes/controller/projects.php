@@ -26,6 +26,8 @@ class Controller_Projects extends Controller_Hybrid
         
         $this->template->title = 'プロジェクト - あみぷろ';
         $available_filters = \Model_Project::get_available_filters($this->current_user->id);
+        $available_yarn = \Model_Yarn::get_user_yarn($this->current_user->id, true);
+
         $selected_filters = [
             'types'      => [],
             'techniques' => [],
@@ -34,6 +36,7 @@ class Controller_Projects extends Controller_Hybrid
         $data = [
             'available_filters' => $available_filters,
             'selected_filters' => $selected_filters,
+            'available_yarn' => $available_yarn['yarn'],
             'current_tab' => 'projects',
             'search_query' => '',
         ];
@@ -47,6 +50,7 @@ class Controller_Projects extends Controller_Hybrid
         
         $this->template->title = '毛糸 - あみぷろ';
         $available_filters = \Model_Yarn::get_available_filters();
+        $projects_data = \Model_Project::get_user_projects($this->current_user->id);
 
         $selected_filters = [
             'weight'      => [],
@@ -56,6 +60,7 @@ class Controller_Projects extends Controller_Hybrid
         $data = [
             'available_filters' => $available_filters,
             'selected_filters' => $selected_filters,
+            'available_projects' => $projects_data['projects'],
             'current_tab' => 'yarn',
             'search_query' => '',
         ];
@@ -73,7 +78,7 @@ class Controller_Projects extends Controller_Hybrid
         ], 200, ['Content-Type' => 'application/json']);
     }
 
-    public function action_yarn_data()
+    public function action_yarns()
     {
         $yarn_data = \Model_Yarn::get_user_yarn($this->current_user->id);
 
@@ -83,28 +88,20 @@ class Controller_Projects extends Controller_Hybrid
         ], 200, ['Content-Type' => 'application/json']);
     }
 
-    public function get_create_data()
-    {
-        $yarn_data = \Model_Yarn::get_user_yarn_list($this->current_user->id);
-        return $this->response([
-            'success'              => true,
-            'statuses'             => ['0' => '未着手', '1' => '進行中', '2' => '中断中', '3' => '完了', '4' => '放棄'],
-            'available_techniques' => \Model_Project::get_knitting_techniques(),
-            'user_yarn'            => $yarn_data,
-        ]);
-    }
-
     public function post_create()
-    {
+    {   
+        if (!\Input::is_ajax()) {
+            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+        }
+
         $val = \Validation::forge();
         $val->add('name', 'プロジェクト名')->add_rule('required');
         $val->add('object_type', 'プロジェクトタイプ')->add_rule('required');
 
         if ($val->run()) {
-            $project_id = \Model_Project::create_with_techniques(
+            $project_id = \Model_Project::create_project(
                 $this->current_user,
-                \Input::post(),
-                \Input::post('techniques', [])
+                \Input::post()
             );
             if ($project_id) {
                 return $this->response(['success' => true, 'project_id' => $project_id]);
@@ -112,4 +109,85 @@ class Controller_Projects extends Controller_Hybrid
         }
         return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
     }
+
+    public function post_yarn()
+    {   
+        if (!\Input::is_ajax()) {
+            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+        }
+
+        $val = \Validation::forge();
+        $val->add('name', '毛糸名')->add_rule('required');
+
+        if ($val->run()) {
+            $yarn_id = \Model_Yarn::create_yarn(
+                $this->current_user->id,
+                \Input::post()
+            );
+            if ($yarn_id) {
+                return $this->response(['success' => true, 'yarn_id' => $yarn_id]);
+            }
+        }
+        return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
+    }
+
+    public function post_delete()
+    {
+        if (!\Input::is_ajax()) {
+            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+        }
+
+        $item_type = \Input::post('item_type');
+        $item_id = \Input::post('item_id');
+
+        \Log::info('Deleting item of type ' . $item_type . ' with ID ' . $item_id);
+
+        if ($item_type === 'project') {
+            //$result = \Model_Project::delete_user_project($this->current_user->id, $item_id);
+            return $this->response(['success' => false, 'error' => 'Project deletion not implemented'], 400);
+        } elseif ($item_type === 'yarn') {
+            $result = \Model_Yarn::delete_user_yarn($this->current_user->id, $item_id);
+        } else {
+            return $this->response(['success' => false, 'error' => 'Invalid item type'], 400);
+        }
+
+        if ($result['success']) {
+            return $this->response(['success' => true]);
+        } else {
+            return $this->response(['success' => false, 'error' => $result['message']], 400);
+        }
+    }
+
+    public function post_edit()
+    {
+        if (!\Input::is_ajax()) {
+            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+        }
+
+        $item_type = \Input::post('item_type');
+        $item_id = \Input::post('item_id');
+        $data = \Input::post();
+
+        if ($item_type === 'project') {
+            //$result = \Model_Project::edit_user_project($this->current_user->id, $item_id, $data);
+            return $this->response(['success' => false, 'error' => 'Project editing not implemented'], 400);
+        } elseif ($item_type === 'yarn') {
+            $result = \Model_Yarn::edit_user_yarn($this->current_user->id, $item_id, $data);
+        } else {
+            return $this->response(['success' => false, 'error' => 'Invalid item type'], 400);
+        }
+
+        if ($result['success']) {
+            return $this->response(['success' => true]);
+        } else {
+            return $this->response(['success' => false, 'error' => $result['message']], 400);
+        }
+    }
+
+    public function action_logout()
+    {
+        Session::destroy();
+        Response::redirect('login');
+    }
+
 }

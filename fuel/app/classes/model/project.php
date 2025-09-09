@@ -25,16 +25,19 @@ class Model_Project extends \Orm\Model
 
     protected static $_has_many = [
         'project_techniques' => ['model_to' => 'Model_ProjectTechnique', 'key_from' => 'id', 'key_to' => 'project_id'],
+        'yarn' => ['model_to' => 'Model_Yarn', 'key_from' => 'id', 'key_to' => 'project_id'],
     ];
 
-    // Get all projects for a user with optional search and filters
+    // READ
     public static function get_user_projects($user_id)
     {
 
         try {
-            $query = static::query()->where('user_id', $user_id)->related('project_techniques');
+            $query = static::query()->where('user_id', $user_id)
+                                    ->related('project_techniques')
+                                    ->related('yarn');
 
-            $projects = $query->order_by('created_at', 'name')
+            $projects = $query->order_by('name')
                               ->get();
 
             return [
@@ -47,33 +50,6 @@ class Model_Project extends \Orm\Model
         }
     }
 
-    // Helper method to apply search and filter conditions to the query
-    private static function apply_search_filters(\Orm\Query $query, array $options)
-    {
-        // Apply search filter
-        if (!empty($options['search'])) {
-            $search = '%' . $options['search'] . '%';
-            $query->where_open();
-            $query->where('name', 'LIKE', $search);
-            $query->where_close();
-        }
-
-        // Apply type filter if present
-        if (!empty($options['types'])) {
-            $query->where('object_type', 'IN', $options['types']);
-        }
-
-        // Apply technique filter if present
-        \Log::debug('Applying technique filters: ' . print_r($options['techniques'], true));
-        if (!empty($options['techniques'])) {
-            $subquery = \DB::select('project_id')
-                ->from('project_technique')
-                ->where('technique', 'IN', $options['techniques']);
-            $query->where('id', 'IN', $subquery);
-        }
-    }
-
-    // Format a project for display
     protected static function format_project_for_display($project)
     {
         $status_map = [0 => '未着手', 1 => '進行中', 2 => '中断中', 3 => '完了', 4 => '放棄'];
@@ -91,6 +67,28 @@ class Model_Project extends \Orm\Model
             }
         }
 
+        $yarn_name = null;
+    
+        if (!empty($project->yarn)) {
+            $yarn_name = '';
+            $count = count($project->yarn);
+            $first_yarn = reset($project->yarn);
+
+            if (!empty($first_yarn->brand)) {
+                $yarn_name .= $first_yarn->brand . ' ';
+            }
+
+            $yarn_name .= $first_yarn->name;
+
+            if (!empty($first_yarn->color)) {
+                $yarn_name .= ' (' . $first_yarn->color . ')';
+            }
+
+            if ($count > 1) {
+                $yarn_name .= ' 他' . ($count - 1) . '玉';
+            }
+        }
+
         return [
             'id' => $project->id,
             'name' => $project->name,
@@ -100,17 +98,77 @@ class Model_Project extends \Orm\Model
             'progress' => $project->progress,
             'status' => $project->status,
             'technique_names' => $technique_names, // Pass the fetched techniques
+            'yarn_name' => $yarn_name,
         ];
     }
 
-    public static function create_project(\Model_User $user, array $project_data, array $techniques_array)
+    public static function get_available_filters($user_id)
+    {
+        return [
+            'types' => static::get_project_types($user_id),
+            'techniques' => static::get_knitting_techniques($user_id),
+        ];
+    }
+
+    protected static function get_project_types($user_id)
+    {
+        $result = \DB::select('object_type')
+            ->from('projects')
+            ->where('user_id', $user_id)
+            ->where('object_type', '!=', '')
+            ->distinct(true)
+            ->execute()
+            ->as_array();
+        
+        $types = array_column($result, 'object_type');
+        array_unshift($types, '全件');
+
+        return array_combine($types, $types);
+    }
+
+    protected static function get_knitting_techniques($user_id)
+    {
+        $result = \DB::select('technique')
+            ->from('project_technique')
+            ->join('projects', 'INNER')->on('project_technique.project_id', '=', 'projects.id')
+            ->where('projects.user_id', $user_id)
+            ->where('technique', '!=', '')
+            ->distinct(true)
+            ->execute()
+            ->as_array();
+        
+        $techniques = array_column($result, 'technique');
+        return array_combine($techniques, $techniques);
+    }
+
+    // CREATE
+    public static function create_project(\Model_User $user, array $project_form)
     {
 
         \DB::start_transaction();
 
         try
         {
-            \Log::info('Collecting data for project. User ID: ' . $user->id);
+            $techniques_array = isset($project_form['techniques']) ? json_decode($project_form['techniques'], true) : [];
+
+            $yarn_id = isset($project_form['yarn_id']) ? $project_form['yarn_id'] : null;
+
+            $project_form_clean = array_filter($project_form, function($value) {
+                return !is_null($value) && $value !== '';
+            });
+
+            $project_data = array_intersect_key($project_form_clean, array_flip([
+                'name',
+                'object_type',
+                'status',
+                'progress',
+                'screenshot_url',
+                'colorwork_url',
+                'memo',
+                'created_at',
+                'completed_at',
+            ]));
+
             $project_data['user_id'] = $user->id;
             $project = static::forge($project_data);
             
@@ -121,8 +179,6 @@ class Model_Project extends \Orm\Model
                 \DB::rollback_transaction();
                 return false;
             }
-
-            \Log::info('Project saved successfully. Project ID: ' . $project->id);
 
             $new_project_id = $project->id;
 
@@ -135,12 +191,30 @@ class Model_Project extends \Orm\Model
                     if (empty(trim($technique_name))) {
                         continue;
                     }
-
                     $project_technique = \Model_ProjectTechnique::forge();
                     $project_technique->project_id = $new_project_id;
                     $project_technique->technique = $technique_name;
                     $project_technique->save();
                 }
+            }
+
+            \Log::debug('Attempting to associate yarn ID ' . $yarn_id . ' with new project ID ' . $new_project_id);
+            if (!empty($yarn_id))
+            {
+                $yarn = \Model_Yarn::find($yarn_id);
+                if ($yarn && $yarn->user_id == $user->id)
+                {
+                    $yarn->project_id = $new_project_id;
+                    $yarn->save();
+                }
+                else
+                {
+                    \Log::warning('Yarn ID ' . $yarn_id . ' not found or does not belong to user ' . $user->id);
+                }
+            }
+            else
+            {
+                \Log::info('No yarn ID provided to associate with the new project.');
             }
 
             \DB::commit_transaction();
@@ -155,50 +229,7 @@ class Model_Project extends \Orm\Model
         }
     }
 
-    /**
-     * Get all available filter options for a specific user.
-     * This is the single source of truth for the filter panel.
-     */
-    public static function get_available_filters($user_id)
-    {
-        return [
-            'types' => static::get_project_types($user_id),
-            'techniques' => static::get_knitting_techniques($user_id),
-        ];
-    }
+    // TODO: DELETE
 
-    /**
-     * Helper to get distinct project types for a user.
-     */
-    public static function get_project_types($user_id)
-    {
-        $result = \DB::select('object_type')
-            ->from('projects')
-            ->where('user_id', $user_id)
-            ->where('object_type', '!=', '')
-            ->distinct(true)
-            ->execute()
-            ->as_array();
-        
-        $types = array_column($result, 'object_type');
-        return array_combine($types, $types);
-    }
-
-    /**
-     * Helper to get distinct techniques for a user.
-     */
-    public static function get_knitting_techniques($user_id)
-    {
-        $result = \DB::select('technique')
-            ->from('project_technique')
-            ->join('projects', 'INNER')->on('project_technique.project_id', '=', 'projects.id')
-            ->where('projects.user_id', $user_id)
-            ->where('technique', '!=', '')
-            ->distinct(true)
-            ->execute()
-            ->as_array();
-        
-        $techniques = array_column($result, 'technique');
-        return array_combine($techniques, $techniques);
-    }
+    // TODO: UPDATE
 }

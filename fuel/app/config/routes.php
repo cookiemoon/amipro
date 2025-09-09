@@ -26,7 +26,6 @@ return array(
     // Project routes
     'projects'                 => 'projects/index',
     'projects/create'          => 'projects/create',
-    'projects/process_create'  => 'projects/process_create', // Keeps the form action
     'projects/detail/(:num)'   => 'projects/detail/$1',
     'projects/edit/(:num)'     => 'projects/edit/$1',
     'projects/update/(:num)'   => 'projects/update/$1',
@@ -34,8 +33,7 @@ return array(
 
     // Yarn routes (now correctly under the 'projects' controller)
     'yarn'                     => 'projects/yarn',
-    'yarn/create'              => 'projects/add_yarn',
-    'yarn/process_create'      => 'projects/create_yarn',
+    'yarn/create'              => 'projects/create_yarn',
 
     // --- AJAX / API Routes ---
     'projects/filter'          => 'projects/filter',

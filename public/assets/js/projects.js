@@ -1,28 +1,210 @@
 function AppViewModel(initialData) {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl || '/';
+    // const csrfTokenKey = document.querySelector('meta[name="csrf-token-key"]').getAttribute('content');
     
     // --- Page State ---
-    self.currentPage = ko.observable('list'); // "list" or "create"
+    self.currentPage = ko.observable('list');
     self.currentPageViewModel = ko.observable();
 
     // --- Project List ViewModel ---
     function ProjectListViewModel(data) {
-        const listSelf = this;
+        const self = this;
+        // const csrfTokenKey = data.csrfTokenKey || 'csrf_token';
         // Projects
-        listSelf.projects = ko.observableArray([]);
+        self.projects = ko.observableArray([]);
+
+        const availableYarns = Object.values(data.availableYarns || {});
+        self.availableYarns = ko.observableArray(availableYarns || []);
 
         // Filters & search
-        listSelf.searchQuery = ko.observable(data.searchQuery || '');
-        listSelf.filterPanelVisible = ko.observable(false);
+        self.searchQuery = ko.observable(data.searchQuery || '');
+        self.filterPanelVisible = ko.observable(false);
 
-        listSelf.selectedTypes = ko.observableArray(data.selected.types || []);
-        listSelf.selectedTechniques = ko.observableArray(data.selected.techniques || []);
+        self.selectedTypes = ko.observableArray(data.selected.types || []);
+        self.selectedTechniques = ko.observableArray(data.selected.techniques || []);
 
-        listSelf.availableTypes = Object.entries(data.filters.types || {}).map(([key, name]) => ({ key, name }));
-        listSelf.availableTechniques = Object.entries(data.filters.techniques || {}).map(([key, name]) => ({ key, name }));
+        self.availableTypes = Object.entries(data.filters.types || {}).map(([key, name]) => ({ key, name }));
+        self.availableTechniques = Object.entries(data.filters.techniques || {}).map(([key, name]) => ({ key, name }));
 
-        listSelf.loadProjects = function() {
+        // Modal visibility
+        self.showCreateModal = ko.observable(false);
+        self.dropdownOpen = ko.observable(false);
+
+        self.showModal = function() {
+            self.showCreateModal(true);
+        }
+
+        self.hideModal = function() {
+            self.showCreateModal(false);
+        }
+
+        // --- New Project Form ---
+        self.newProject = {
+            name: ko.observable(''),
+            objectType: ko.observable(''),
+
+            techniques: ko.observableArray([]),
+
+            yarn: ko.observableArray([]),
+
+            status: ko.observable(0),
+            progress: ko.observable(0),
+
+            startDate: ko.observable(null),
+            completionDate: ko.observable(null),
+
+            memo: ko.observable(''),
+            
+            screenshotUrl: ko.observable(''),
+            colorworkUrl: ko.observable('')
+        };
+
+        self.isFormValid = ko.computed(() => {
+            return self.newProject.name().trim() !== '' && self.newProject.objectType().trim() !== '';
+        });
+
+        // Yarn selection
+        self.selectedYarns = ko.observableArray([]);
+
+        self.yarnSearch = ko.observable('');
+
+        self.filteredYarns = ko.computed(() => {
+            const term = self.yarnSearch().toLowerCase();
+            return self.availableYarns().filter(y => 
+                y.name.toLowerCase().includes(term) &&
+                !self.selectedYarns().some(sy => sy.id === y.id) // exclude already selected
+            );
+        });
+
+        self.selectYarn = function(yarn) {
+            self.selectedYarns.push(yarn);
+            self.yarnSearch('');
+            self.dropdownOpen(false);
+        };
+
+        self.yarnSearch.subscribe(value => {
+            if (!value || value.trim() === '') {
+                self.newProject.yarn(null);
+            }
+            self.dropdownOpen(value.trim().length > 0);
+        });
+
+        self.removeYarn = function(yarn) {
+            self.selectedYarns.remove(yarn);
+        };
+
+        // Status & progress options
+        self.statusOptions = [
+            { value: 0, label: '未着手' },
+            { value: 1, label: '進行中' },
+            { value: 2, label: '中断中' },
+            { value: 3, label: '完了' },
+            { value: 4, label: '放棄' }
+        ];
+
+        self.newProject.status = ko.observable(0);
+        self.newProject.progress = ko.observable(0);
+        self.newProject.completionDate = ko.observable(null);
+
+        self.showProgress = ko.computed(() => {
+            return self.newProject.status() === 1 || self.newProject.status() === 2;
+        });
+
+        self.showCompletionDate = ko.computed(() => {
+            return self.newProject.status() === 3;
+        });
+
+        // Techniques options
+        self.suggestedTechniques = ko.observableArray(data.suggestedTechniques || [
+            'ビーズ', 'ケーブル編み', 'フェアアイル', '交差編み', '配色編み',
+            'かぎ針編み', '引き返し編み', 'レース'
+        ]);
+
+        self.toggleTechnique = function(tech) {
+            if (!self.newProject.techniques().includes(tech)) {
+                self.newProject.techniques.push(tech);
+            } else {
+                self.newProject.techniques.remove(tech);
+            }
+        };
+        
+        // Custom techniques handling
+        self.newTechniqueInput = ko.observable('');
+        
+        self.addCustomTechnique = function() {
+            const val = self.newTechniqueInput().trim();
+            if (val && !self.newProject.techniques().includes(val)) {
+                self.newProject.techniques.push(val);
+            }
+            self.newTechniqueInput('');
+        };
+        
+        self.removeTechnique = function(tech) {
+            self.newProject.techniques.remove(tech);
+        };
+
+        // Screenshot preview
+        self.screenshotPreview = ko.computed(() => {
+            const url = self.newProject.screenshotUrl();
+            return url ? url : null;
+        });
+
+        self.colorworkScreenshotPreview = ko.computed(() => {
+            const url = self.newProject.colorworkUrl();
+            return url ? url : null;
+        });
+    
+        // Form submission
+        self.submitNewProject = function() {
+            if (self.newProject.status() === 3) {
+                self.newProject.progress(100);
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+
+            const formData = new FormData();
+            // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            formData.append('name', self.newProject.name().trim());
+            formData.append('object_type', self.newProject.objectType().trim());
+            formData.append('techniques', JSON.stringify(self.newProject.techniques()));
+            formData.append('yarn_id', self.newProject.yarn());
+            formData.append('status', self.newProject.status());
+            formData.append('progress', self.newProject.progress());
+            formData.append('created_at', self.newProject.startDate() || today);
+            formData.append('completed_at', self.newProject.completionDate() || '');
+            formData.append('memo', self.newProject.memo().trim());
+            formData.append('screenshot_url', self.newProject.screenshotUrl().trim());
+            formData.append('colorwork_url', self.newProject.colorworkUrl().trim());
+
+            // formData.append(csrfTokenKey, csrfToken);
+
+            fetch(`${baseUrl}projects/create`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    self.hideModal();
+                    self.loadProjects();
+                } else {
+                    console.error("Project creation error:",data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Project creation error 2:', error);
+            })
+        };
+    
+        self.cancelCreate = function() {
+            self.hideModal();
+        };
+
+        // --- Project loading & filtering ---
+        self.loadProjects = function() {
             fetch(`${baseUrl}projects/data.json`)
                 .then(response => response.json())
                 .then(data => {
@@ -31,70 +213,48 @@ function AppViewModel(initialData) {
                         projectsArray.forEach(p => {
                             p.detail_url = `${baseUrl}projects/detail/${p.id}`;
                         });
-                        listSelf.projects(projectsArray);
+                        self.projects(projectsArray);
                     }
                 })
                 .catch(err => console.error('Error loading projects:', err));
         };
 
-        listSelf.loadProjects();
+        self.loadProjects();
 
-        // --- Toggle filter panel ---
-        listSelf.toggleFilterPanel = () => listSelf.filterPanelVisible(!listSelf.filterPanelVisible());
+        self.toggleFilterPanel = () => self.filterPanelVisible(!self.filterPanelVisible());
 
-        // --- Computed: filtered projects ---
-        listSelf.filteredProjects = ko.computed(() => {
-            return listSelf.projects().filter(p => {
-                // --- Search filter ---
-                const matchesSearch = !listSelf.searchQuery() ||
-                    p.name.toLowerCase().includes(listSelf.searchQuery().toLowerCase());
+        self.filteredProjects = ko.computed(() => {
+            return self.projects().filter(p => {
+                // Search bar
+                const matchesSearch = !self.searchQuery() ||
+                    p.name.toLowerCase().includes(self.searchQuery().toLowerCase());
         
-                // --- Type filter ---
-                const matchesType = listSelf.selectedTypes().length === 0 ||
-                    listSelf.selectedTypes().includes(p.object_type);
+                // Type filter
+                const matchesType = self.selectedTypes().length === 0 ||
+                    self.selectedTypes().includes('全件') ||
+                    self.selectedTypes().includes(p.object_type);
         
-                // --- Technique filter ---
-                const matchesTechnique = listSelf.selectedTechniques().length === 0 ||
-                    (p.technique_names || []).some(t => listSelf.selectedTechniques().includes(t));
+                // Techniques filter
+                const matchesTechnique = self.selectedTechniques().length === 0 ||
+                    (p.technique_names || []).some(t => self.selectedTechniques().includes(t));
         
                 return matchesSearch && matchesType && matchesTechnique;
             });
         });
-        
 
-        // --- Navigate to create page ---
-        listSelf.goToCreate = () => self.changePage('create');
+        self.logout = function() {
+            window.location.href = `${baseUrl}projects/logout`;
+        };        
     }
-
-    // --- Project Create ViewModel ---
-    function ProjectCreateViewModel() {
-        const createSelf = this;
-
-        createSelf.newProject = {
-            name: ko.observable(''),
-            // add more project fields here if needed
-        };
-
-        createSelf.submitNewProject = function() {
-            console.log("Submitting project:", ko.toJS(createSelf.newProject));
-            // TODO: AJAX POST logic
-        };
-
-        createSelf.cancelCreate = () => self.changePage('list');
-    }
-
+    
     // --- Page Navigation ---
     self.changePage = function(page) {
-        self.currentPage(page);
         if (page === 'list') {
+            // initialData.csrfTokenKey = csrfTokenKey;
             self.currentPageViewModel(new ProjectListViewModel(initialData));
-        } else if (page === 'create') {
-            self.currentPageViewModel(new ProjectCreateViewModel());
+            self.currentPage('list');
         }
     };
-
-    // --- Template Selector ---
-    self.currentTemplate = ko.computed(() => `project-${self.currentPage()}-template`);
 
     // --- Start on project list ---
     self.changePage('list');

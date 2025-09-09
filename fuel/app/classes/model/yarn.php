@@ -10,7 +10,7 @@ class Model_Yarn extends \Orm\Model
         'name',
         'brand',
         'color',
-        'size',
+        'weight',
         'fiber_animal',
         'fiber_plant',
         'fiber_synthetic',
@@ -34,12 +34,18 @@ class Model_Yarn extends \Orm\Model
         )
     );
 
-    public static function get_user_yarn($user_id)
+    // READ
+    public static function get_user_yarn($user_id, $available=false)
     {
         try {
-            $query = static::query()->where('user_id', $user_id);
+            if ($available) {
+                $query = static::query()->where('user_id', $user_id)
+                                        ->where('project_id', null);
+            } else {
+                $query = static::query()->where('user_id', $user_id);
+            }
             
-            $yarn_items = $query->order_by('created_at', 'desc')->get();
+            $yarn_items = $query->order_by('brand', 'name')->get();
             
             $formatted_yarn = array_map([__CLASS__, 'format_yarn_for_display'], $yarn_items);
             
@@ -56,48 +62,7 @@ class Model_Yarn extends \Orm\Model
         }
     }
 
-    public static function get_project_yarn($project_id)
-    {
-        try {
-            $yarn_items = static::query()->where('project_id', $project_id)
-                                        ->order_by('created_at', 'desc')
-                                        ->get();
-            
-            $formatted_yarn = array_map([__CLASS__, 'format_yarn_for_display'], $yarn_items);
-            
-            return ['yarn' => $formatted_yarn];
-            
-        } catch (\Exception $e) {
-            \Log::error('Get project yarn error: ' . $e->getMessage());
-            return ['yarn' => []];
-        }
-    }
-
-    public static function create_yarn($user_id, $data)
-    {
-        $yarn = static::forge([
-            'user_id' => $user_id,
-            'name' => $data['name'],
-            'brand' => $data['brand'],
-            'color' => $data['color'],
-            'weight' => $data['weight'],
-            'size' => $data['size'],
-            'fiber_animal' => isset($data['fiber']['animal']) ? 1 : 0,
-            'fiber_plant' => isset($data['fiber']['plant']) ? 1 : 0,
-            'fiber_synthetic' => isset($data['fiber']['synthetic']) ? 1 : 0,
-            'fiber_desc' => $data['fiber_desc'],
-            'project_id' => isset($data['project_id']) ? $data['project_id'] : null,
-        ]);
-
-        if ($yarn->save()) {
-            return ['success' => true, 'yarn_id' => $yarn->id];
-        }
-
-        \Log::error('Failed to save yarn for user_id ' . $user_id);
-        return ['success' => false, 'message' => '毛糸の保存に失敗しました。'];
-    }
-
-    public static function get_fiber_types()
+    protected static function get_fiber_types()
     {
         return [
             '動物性繊維' => '動物性繊維',
@@ -105,10 +70,11 @@ class Model_Yarn extends \Orm\Model
             '合成繊維' => '合成繊維',
         ];
     }
-    
-    public static function get_yarn_weights()
+
+    protected static function get_yarn_weights()
     {
         return [
+            '全件' => '全件',
             '極細' => '極細',
             '合細' => '合細',
             '中細' => '中細',
@@ -126,33 +92,139 @@ class Model_Yarn extends \Orm\Model
             'fiber'  => static::get_fiber_types(),
         ];
     }
-    
+
     protected static function format_yarn_for_display($yarn)
     {
-        $weight_map = [
-            0 => '極細',
-            1 => '合細',
-            2 => '中細',
-            3 => '合太',
-            4 => '並太',
-            5 => '極太',
-            6 => '超極太',
-        ];
+        $fiber_types = [];
+
+        if ($yarn->fiber_animal) {
+            $fiber_types[] = '動物性繊維';
+        }
+        if ($yarn->fiber_plant) {
+            $fiber_types[] = '植物繊維';
+        }
+        if ($yarn->fiber_synthetic) {
+            $fiber_types[] = '合成繊維';
+        }
 
         return [
             'id' => $yarn->id,
             'name' => $yarn->name,
             'brand' => $yarn->brand,
             'color' => $yarn->color,
-            'weight' => isset($weight_map[$yarn->weight]) ? $weight_map[$yarn->weight] : '不明',
-            'size' => $yarn->size,
-            'fiber_types' => [
-                'animal' => $yarn->fiber_animal ? '動物性繊維' : null,
-                'plant' => $yarn->fiber_plant ? '植物繊維' : null,
-                'synthetic' => $yarn->fiber_synthetic ? '合成繊維' : null,
-            ],
+            'weight' => $yarn->weight ? $yarn->weight : "不明",
+            'fiber_types' => $fiber_types,
             'fiber_desc' => $yarn->fiber_desc,
-            'project_id' => $yarn->project_id,
+            'project_name' => $yarn->project ? $yarn->project->name : "未登録",
+            'project_id' => $yarn->project ? $yarn->project->id : null,
         ];
+    }
+
+    // DELETE
+    public static function delete_user_yarn($user_id, $yarn_id)
+    {
+        try {
+            $yarn = static::query()->where('id', $yarn_id)
+                                  ->where('user_id', $user_id)
+                                  ->get_one();
+            
+            if ($yarn) {
+                $yarn->delete();
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'message' => '指定された毛糸が見つかりません。'];
+            }
+        } catch (\Exception $e) {
+            \Log::error('Delete user yarn error: ' . $e->getMessage());
+            return ['success' => false, 'message' => '毛糸の削除中にエラーが発生しました。'];
+        }
+    }
+
+    // CREATE
+    public static function create_yarn($user_id, $data)
+    {
+        // Check if associated project actually belongs to the user
+        if (isset($data['project_id']) && $data['project_id'] != "null") {
+            $project = Model_Project::query()
+                ->where('id', $data['project_id'])
+                ->where('user_id', $user_id)
+                ->get_one();
+            if (!$project) {
+                \Log::warning('Attempt to associate yarn with invalid project_id ' . $data['project_id'] . ' for user_id ' . $user_id);
+                $project_id = null;
+            } else {
+                $project_id = $data['project_id'];
+            }
+        } else {
+            $project_id = null;
+        }
+
+        $yarn = static::forge([
+            'user_id' => $user_id,
+            'name' => $data['name'],
+            'brand' => $data['brand'],
+            'color' => $data['color'],
+            'weight' => $data['weight'],
+            'fiber_animal' => $data['fiber_animal'] == "true" ? 1 : 0,
+            'fiber_plant' => $data['fiber_plant'] == "true" ? 1 : 0,
+            'fiber_synthetic' => $data['fiber_synthetic'] == "true" ? 1 : 0,
+            'fiber_desc' => $data['fiber_desc'],
+            'project_id' => $project_id ?? null,
+        ]);
+
+        if ($yarn->save()) {
+            return ['success' => true, 'yarn_id' => $yarn->id];
+        }
+
+        \Log::error('Failed to save yarn for user_id ' . $user_id);
+        return ['success' => false, 'message' => '毛糸の保存に失敗しました。'];
+    }
+
+    // UPDATE
+    public static function edit_user_yarn($user_id, $yarn_id, $data) {
+        try {
+            
+            $yarn = static::query()->where('id', $yarn_id)
+                                  ->where('user_id', $user_id)
+                                  ->get_one();
+            
+            if (!$yarn) {
+                return ['success' => false, 'message' => '指定された毛糸が見つかりません。'];
+            }
+
+            if (isset($data['project_id']) && $data['project_id'] != "null") {
+                $project = Model_Project::query()
+                    ->where('id', $data['project_id'])
+                    ->where('user_id', $user_id)
+                    ->get_one();
+                if (!$project) {
+                    \Log::warning('Attempt to associate yarn with invalid project_id ' . $data['project_id'] . ' for user_id ' . $user_id);
+                    $yarn->project_id = null;
+                } else {
+                    $yarn->project_id = $data['project_id'];
+                }
+            } else {
+                $yarn->project_id = null;
+            }
+
+            $yarn->name = $data['name'];
+            $yarn->brand = $data['brand'];
+            $yarn->color = $data['color'];
+            $yarn->weight = $data['weight'];
+            $yarn->fiber_animal = $data['fiber_animal'] == "true" ? 1 : 0;
+            $yarn->fiber_plant = $data['fiber_plant'] == "true" ? 1 : 0;
+            $yarn->fiber_synthetic = $data['fiber_synthetic'] == "true" ? 1 : 0;
+            $yarn->fiber_desc = $data['fiber_desc'];
+
+            if ($yarn->save()) {
+                return ['success' => true];
+            } else {
+                \Log::error('Failed to update yarn for user_id ' . $user_id . ' and yarn_id ' . $yarn_id);
+                return ['success' => false, 'message' => '毛糸の更新に失敗しました。'];
+            }
+        } catch (\Exception $e) {
+            \Log::error('Edit user yarn error: ' . $e->getMessage());
+            return ['success' => false, 'message' => '毛糸の更新中にエラーが発生しました。'];
+        }
     }
 }

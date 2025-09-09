@@ -1,7 +1,7 @@
 function AppViewModel() {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl || '/';
-    const csrfTokenKey = document.querySelector('meta[name="csrf-token-key"]').getAttribute('content');
+    // const csrfTokenKey = document.querySelector('meta[name="csrf-token-key"]').getAttribute('content');
 
     // --- Login ViewModel ---
     self.login = new function() {
@@ -16,11 +16,11 @@ function AppViewModel() {
             loginSelf.isLoading(true);
             loginSelf.serverErrorMessage(null);
             
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             const formData = new FormData();
             formData.append('username', loginSelf.username());
             formData.append('password', loginSelf.password());
-            formData.append(csrfTokenKey, csrfToken);
+            // formData.append(csrfTokenKey, csrfToken);
 
             fetch(`${baseUrl}login`, {
                 method: 'POST',
@@ -98,12 +98,12 @@ function AppViewModel() {
             regSelf.isLoading(true);
             regSelf.serverErrorMessage(null);
             
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             const formData = new FormData();
             formData.append('username', regSelf.username());
             formData.append('password', regSelf.password());
             formData.append('password_confirm', regSelf.passwordConfirm());
-            formData.append(csrfTokenKey, csrfToken);
+            // formData.append(csrfTokenKey, csrfToken);
 
             fetch(`${baseUrl}register`, {
                 method: 'POST',
