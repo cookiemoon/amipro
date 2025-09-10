@@ -106,12 +106,11 @@ function AppViewModel(initialData) {
             // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             const isEdit = !!self.currentEditYarn();
-            if (isEdit) {
-                formData.append('item_id', self.newYarn.id);
-                formData.append('item_type', 'yarn');
-            }
 
-            const url = isEdit ? `${baseUrl}projects/edit` : `${baseUrl}projects/yarn`;
+            formData.append('item_id', self.newYarn.id);
+            formData.append('item_type', 'yarn');
+
+            const url = isEdit ? `${baseUrl}projects/edit` : `${baseUrl}projects/create`;
 
             formData.append('name', self.newYarn.name().trim());
             formData.append('brand', self.newYarn.brand().trim());
@@ -150,7 +149,7 @@ function AppViewModel(initialData) {
 
         // --- Yarn loading & filtering ---
         self.loadYarns = function() {
-            fetch(`${baseUrl}projects/yarns/data.json`)
+            fetch(`${baseUrl}projects/yarn_data.json`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

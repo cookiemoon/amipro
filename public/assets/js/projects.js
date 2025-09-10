@@ -161,6 +161,10 @@ function AppViewModel(initialData) {
                 self.newProject.progress(100);
             }
 
+            if (self.newProject.progress() === 0) {
+                self.newProject.status(0);
+            }
+
             const today = new Date().toISOString().split('T')[0];
 
             const formData = new FormData();
@@ -169,7 +173,7 @@ function AppViewModel(initialData) {
             formData.append('name', self.newProject.name().trim());
             formData.append('object_type', self.newProject.objectType().trim());
             formData.append('techniques', JSON.stringify(self.newProject.techniques()));
-            formData.append('yarn_id', self.newProject.yarn());
+            formData.append('yarns', JSON.stringify(self.selectedYarns()));
             formData.append('status', self.newProject.status());
             formData.append('progress', self.newProject.progress());
             formData.append('created_at', self.newProject.startDate() || today);
@@ -177,6 +181,8 @@ function AppViewModel(initialData) {
             formData.append('memo', self.newProject.memo().trim());
             formData.append('screenshot_url', self.newProject.screenshotUrl().trim());
             formData.append('colorwork_url', self.newProject.colorworkUrl().trim());
+
+            console.log(formData);
 
             // formData.append(csrfTokenKey, csrfToken);
 

@@ -78,7 +78,7 @@ class Controller_Projects extends Controller_Hybrid
         ], 200, ['Content-Type' => 'application/json']);
     }
 
-    public function action_yarns()
+    public function action_yarn_data()
     {
         $yarn_data = \Model_Yarn::get_user_yarn($this->current_user->id);
 
@@ -94,41 +94,43 @@ class Controller_Projects extends Controller_Hybrid
             return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
         }
 
-        $val = \Validation::forge();
-        $val->add('name', 'プロジェクト名')->add_rule('required');
-        $val->add('object_type', 'プロジェクトタイプ')->add_rule('required');
+        $item_type = \Input::post('item_type');
+        $item_id = \Input::post('item_id');
 
-        if ($val->run()) {
-            $project_id = \Model_Project::create_project(
-                $this->current_user,
-                \Input::post()
-            );
-            if ($project_id) {
-                return $this->response(['success' => true, 'project_id' => $project_id]);
+        if ($item_type === 'project') {
+
+            $val = \Validation::forge();
+            $val->add('name', 'プロジェクト名')->add_rule('required');
+            $val->add('object_type', 'プロジェクトタイプ')->add_rule('required');
+            if ($val->run()) {
+                $project_id = \Model_Project::create_project(
+                    $this->current_user,
+                    \Input::post()
+                );
+                if ($project_id) {
+                    return $this->response(['success' => true, 'project_id' => $project_id]);
+                }
             }
-        }
-        return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
-    }
+            return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
 
-    public function post_yarn()
-    {   
-        if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
-        }
+        } elseif ($item_type === 'yarn') {
 
-        $val = \Validation::forge();
-        $val->add('name', '毛糸名')->add_rule('required');
-
-        if ($val->run()) {
-            $yarn_id = \Model_Yarn::create_yarn(
-                $this->current_user->id,
-                \Input::post()
-            );
-            if ($yarn_id) {
-                return $this->response(['success' => true, 'yarn_id' => $yarn_id]);
+            $val = \Validation::forge();
+            $val->add('name', '毛糸名')->add_rule('required');
+            if ($val->run()) {
+                $yarn_id = \Model_Yarn::create_yarn(
+                    $this->current_user->id,
+                    \Input::post()
+                );
+                if ($yarn_id) {
+                    return $this->response(['success' => true, 'yarn_id' => $yarn_id]);
+                }
             }
+            return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
+
+        } else {
+            return $this->response(['success' => false, 'error' => 'Invalid item type'], 400);
         }
-        return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
     }
 
     public function post_delete()
@@ -143,8 +145,7 @@ class Controller_Projects extends Controller_Hybrid
         \Log::info('Deleting item of type ' . $item_type . ' with ID ' . $item_id);
 
         if ($item_type === 'project') {
-            //$result = \Model_Project::delete_user_project($this->current_user->id, $item_id);
-            return $this->response(['success' => false, 'error' => 'Project deletion not implemented'], 400);
+            $result = \Model_Project::delete_user_project($this->current_user->id, $item_id);
         } elseif ($item_type === 'yarn') {
             $result = \Model_Yarn::delete_user_yarn($this->current_user->id, $item_id);
         } else {
@@ -169,8 +170,7 @@ class Controller_Projects extends Controller_Hybrid
         $data = \Input::post();
 
         if ($item_type === 'project') {
-            //$result = \Model_Project::edit_user_project($this->current_user->id, $item_id, $data);
-            return $this->response(['success' => false, 'error' => 'Project editing not implemented'], 400);
+            $result = \Model_Project::edit_user_project($this->current_user->id, $item_id, $data);
         } elseif ($item_type === 'yarn') {
             $result = \Model_Yarn::edit_user_yarn($this->current_user->id, $item_id, $data);
         } else {
@@ -188,6 +188,38 @@ class Controller_Projects extends Controller_Hybrid
     {
         Session::destroy();
         Response::redirect('login');
+    }
+
+    public function action_detail($id)
+    {
+        $project = \Model_Project::get_user_projects($this->current_user->id, $id);
+
+        \Log::debug('Fetched project: ' . print_r($project, true));
+
+        if (!$project) {
+            throw new HttpNotFoundException;
+        }
+
+        $data['project'] = $project;
+        $data['title']   = $project['name'] . ' - あみぷろ';
+
+        return Response::forge(View::forge('projects/detail', $data));
+    }
+
+    public function action_detail_data($id)
+    {
+        $project = \Model_Project::get_user_projects($this->current_user->id, $id);
+        $available_yarn = \Model_Yarn::get_user_yarn($this->current_user->id, true);
+
+        if (!$project) {
+            return $this->response(['success' => false, 'error' => 'Not found']);
+        }
+
+        return $this->response([
+            'success' => true,
+            'project' => $project,
+            'available_yarn' => $available_yarn['yarn']
+        ]);
     }
 
 }

@@ -29,13 +29,26 @@ class Model_Project extends \Orm\Model
     ];
 
     // READ
-    public static function get_user_projects($user_id)
+    public static function get_user_projects($user_id, $project_id = null)
     {
-
         try {
+            if ($project_id != null) {
+                $query = static::query()->where('user_id', $user_id)
+                                        ->where('id', $project_id)
+                                        ->related('project_techniques')
+                                        ->related('yarn');
+
+                $project = $query->get_one();
+                if ($project) {
+                    return self::format_project_for_display($project, true);
+                } else {
+                    return ['project' => []];
+                }
+            }
+            
             $query = static::query()->where('user_id', $user_id)
-                                    ->related('project_techniques')
-                                    ->related('yarn');
+                                        ->related('project_techniques')
+                                        ->related('yarn');
 
             $projects = $query->order_by('name')
                               ->get();
@@ -50,7 +63,7 @@ class Model_Project extends \Orm\Model
         }
     }
 
-    protected static function format_project_for_display($project)
+    protected static function format_project_for_display($project, $detail = false)
     {
         $status_map = [0 => '未着手', 1 => '進行中', 2 => '中断中', 3 => '完了', 4 => '放棄'];
         $status_text = $status_map[$project->status] ?? '不明';
@@ -68,24 +81,46 @@ class Model_Project extends \Orm\Model
         }
 
         $yarn_name = null;
+        $yarn_info = [];
     
-        if (!empty($project->yarn)) {
-            $yarn_name = '';
-            $count = count($project->yarn);
-            $first_yarn = reset($project->yarn);
-
-            if (!empty($first_yarn->brand)) {
-                $yarn_name .= $first_yarn->brand . ' ';
+        if ($detail && !empty($project->yarn)) {
+            $yarn_name = [];
+            foreach ($project->yarn as $yarn) {
+                $full_name = '';
+                if (!empty($yarn->brand)) {
+                    $full_name .= $yarn->brand . ' ';
+                }
+                $full_name .= $yarn->name;
+                if (!empty($yarn->color)) {
+                    $full_name .= ' (' . $yarn->color . ')';
+                }
+                $yarn_name[] = $full_name;
+                $yarn_info[] = [
+                    'id' => $yarn->id,
+                    'name' => $yarn->name,
+                    'brand' => $yarn->brand,
+                    'color' => $yarn->color,
+                ];
             }
+        } else {
+            if (!empty($project->yarn)) {
+                $yarn_name = '';
+                $count = count($project->yarn);
+                $first_yarn = reset($project->yarn);
 
-            $yarn_name .= $first_yarn->name;
+                if (!empty($first_yarn->brand)) {
+                    $yarn_name .= $first_yarn->brand . ' ';
+                }
 
-            if (!empty($first_yarn->color)) {
-                $yarn_name .= ' (' . $first_yarn->color . ')';
-            }
+                $yarn_name .= $first_yarn->name;
 
-            if ($count > 1) {
-                $yarn_name .= ' 他' . ($count - 1) . '玉';
+                if (!empty($first_yarn->color)) {
+                    $yarn_name .= ' (' . $first_yarn->color . ')';
+                }
+
+                if ($count > 1) {
+                    $yarn_name .= ' 他' . ($count - 1) . '玉';
+                }
             }
         }
 
@@ -96,9 +131,15 @@ class Model_Project extends \Orm\Model
             'screenshot_url' => $project->screenshot_url,
             'status_text' => $status_text,
             'progress' => $project->progress,
+            'created_at' => $project->created_at ? date('Y-m-d', strtotime($project->created_at)) : null,
+            'completed_at' => $project->completed_at ? date('Y-m-d', strtotime($project->completed_at)) : null,
+            'created_text' => $project->created_at ? date('Y年m月d日', strtotime($project->created_at)) : null,
+            'completed_text' => $project->completed_at ? date('Y年m月d日', strtotime($project->completed_at)) : null,
             'status' => $project->status,
             'technique_names' => $technique_names, // Pass the fetched techniques
+            'memo' => $project->memo,
             'yarn_name' => $yarn_name,
+            'yarn_info' => $yarn_info,
         ];
     }
 
@@ -151,7 +192,7 @@ class Model_Project extends \Orm\Model
         {
             $techniques_array = isset($project_form['techniques']) ? json_decode($project_form['techniques'], true) : [];
 
-            $yarn_id = isset($project_form['yarn_id']) ? $project_form['yarn_id'] : null;
+            $yarns = isset($project_form['yarns']) ? json_decode($project_form['yarns'], true) : [];
 
             $project_form_clean = array_filter($project_form, function($value) {
                 return !is_null($value) && $value !== '';
@@ -198,23 +239,30 @@ class Model_Project extends \Orm\Model
                 }
             }
 
-            \Log::debug('Attempting to associate yarn ID ' . $yarn_id . ' with new project ID ' . $new_project_id);
-            if (!empty($yarn_id))
+            if (!empty($yarns))
             {
-                $yarn = \Model_Yarn::find($yarn_id);
-                if ($yarn && $yarn->user_id == $user->id)
+                foreach ($yarns as $curr_yarn)
                 {
-                    $yarn->project_id = $new_project_id;
-                    $yarn->save();
-                }
-                else
-                {
-                    \Log::warning('Yarn ID ' . $yarn_id . ' not found or does not belong to user ' . $user->id);
+                    $yarn_id = $curr_yarn['id'] ?? null;
+                    if (!is_numeric($yarn_id)) {
+                        \Log::warning('Invalid yarn ID provided: ' . $yarn_id);
+                        continue;
+                    }
+                    $yarn = \Model_Yarn::find($yarn_id);
+                    if ($yarn && $yarn->user_id == $user->id)
+                    {
+                        $yarn->project_id = $new_project_id;
+                        $yarn->save();
+                    }
+                    else
+                    {
+                        \Log::warning('Yarn ID ' . $yarn_id . ' not found or does not belong to user ' . $user->id);
+                    }
                 }
             }
             else
             {
-                \Log::info('No yarn ID provided to associate with the new project.');
+                \Log::info('No yarn IDs provided to associate with the new project.');
             }
 
             \DB::commit_transaction();
@@ -229,7 +277,114 @@ class Model_Project extends \Orm\Model
         }
     }
 
-    // TODO: DELETE
+    // DELETE
+    public static function delete_user_project($user_id, $project_id) {
+        try {
+            $project = static::find($project_id);
+            if (!$project || $project->user_id != $user_id) {
+                return ['success' => false, 'message' => 'Project not found or access denied'];
+            }
+
+            $yarns = \Model_Yarn::query()->where('project_id', $project_id)->get();
+            foreach ($yarns as $yarn) {
+                $yarn->project_id = null;
+                $yarn->save();
+            }
+
+            \Model_ProjectTechnique::query()->where('project_id', $project_id)->delete();
+
+            $project->delete();
+
+            return ['success' => true];
+        } catch (\Exception $e) {
+            \Log::error('Error deleting project: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'An error occurred while deleting the project'];
+        }
+    }
 
     // TODO: UPDATE
+    public static function edit_user_project($user_id, $project_id, $data) {
+        try {
+            $project = static::find($project_id);
+            if (!$project || $project->user_id != $user_id) {
+                return ['success' => false, 'message' => 'Project not found or access denied'];
+            }
+
+            $updatable_fields = [
+                'name',
+                'object_type',
+                'status',
+                'progress',
+                'screenshot_url',
+                'colorwork_url',
+                'memo',
+                'created_at',
+                'completed_at',
+            ];
+
+            foreach ($updatable_fields as $field) {
+                if (isset($data[$field]) && $data[$field] !== null && $data[$field] !== '') {
+                    $project->$field = $data[$field];
+                }
+            }
+
+            if (!$project->save()) {
+                $error = $project->validation()->error();
+                \Log::error('Project model failed to save during update. Validation Error: ' . print_r($error, true));
+                return ['success' => false, 'message' => 'Failed to save project changes'];
+            }
+
+            if (isset($data['techniques'])) {
+                $techniques_array = json_decode($data['techniques'], true);
+                \Model_ProjectTechnique::query()->where('project_id', $project_id)->delete();
+
+                $filtered_techniques = array_filter($techniques_array);
+                foreach ($filtered_techniques as $technique_name) {
+                    if (empty(trim($technique_name))) {
+                        continue;
+                    }
+                    $project_technique = \Model_ProjectTechnique::forge();
+                    $project_technique->project_id = $project_id;
+                    $project_technique->technique = $technique_name;
+                    $project_technique->save();
+                }
+            }
+
+            if (isset($data['yarn']) && !empty($data['yarn'])) {
+                $yarns = json_decode($data['yarn'], true);
+
+                \Log::debug('Updating yarn associations for project ID ' . $project_id . ' with yarns: ' . print_r($yarns, true));
+                
+                
+                $existing_yarns = \Model_Yarn::query()->where('project_id', $project_id)->get();
+                if(isset($existing_yarns)) { 
+                    \Log::info('Existing yarns count: ' . count($existing_yarns));
+                    foreach ($existing_yarns as $yarn) {
+                        $yarn->project_id = null;
+                        $yarn->save();
+                    }
+                }
+
+                foreach ($yarns as $curr_yarn) {
+                    $yarn_id = $curr_yarn['id'] ?? null;
+                    if (!is_numeric($yarn_id)) {
+                        \Log::warning('Invalid yarn ID provided: ' . $yarn_id);
+                        continue;
+                    }
+                    $yarn = \Model_Yarn::find($yarn_id);
+                    if ($yarn && $yarn->user_id == $user_id) {
+                        $yarn->project_id = $project_id;
+                        $yarn->save();
+                    } else {
+                        \Log::warning('Yarn ID ' . $yarn_id . ' not found or does not belong to user ' . $user_id);
+                    }
+                }
+            }
+
+            return ['success' => true];
+        } catch (\Exception $e) {
+            \Log::error('Error updating project: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'An error occurred while updating the project'];
+        }
+    }
 }
