@@ -168,6 +168,7 @@ function AppViewModel(initialData) {
             const today = new Date().toISOString().split('T')[0];
 
             const formData = new FormData();
+            formData.append('item_type', 'project');
             // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             formData.append('name', self.newProject.name().trim());

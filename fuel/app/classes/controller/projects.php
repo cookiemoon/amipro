@@ -10,7 +10,14 @@ class Controller_Projects extends Controller_Hybrid
     {
         parent::before();
 
-        $user_id = \Session::get('user_id');
+        if (\Session::get('user_id')) {
+            $user_id = \Session::get('user_id');
+        } elseif (\Cookie::get('user_id')) {
+            $user_id = \Cookie::get('user_id');
+            \Session::set('user_id', $user_id);
+        } else {
+            $user_id = null;
+        }
 
         $this->current_user = $user_id ? \Model_User::find($user_id) : null;
         if (!$this->current_user) \Response::redirect('auth/login');
@@ -95,7 +102,6 @@ class Controller_Projects extends Controller_Hybrid
         }
 
         $item_type = \Input::post('item_type');
-        $item_id = \Input::post('item_id');
 
         if ($item_type === 'project') {
 
@@ -222,4 +228,110 @@ class Controller_Projects extends Controller_Hybrid
         ]);
     }
 
+    public function action_color($id)
+    {
+        $project = \Model_Project::get_user_projects($this->current_user->id, $id);
+
+        if (!$project) {
+            throw new HttpNotFoundException;
+        }
+
+        $data['project'] = $project;
+        $data['title']   = $project['name'] . ' - あみぷろ';
+
+        return Response::forge(View::forge('projects/color', $data));
+    }
+
+    public function action_color_data($id)
+    {
+        $project = \Model_Project::get_user_projects($this->current_user->id, $id);
+        $chart = \Model_Customchart::get_chart($this->current_user->id, $id);
+
+        if (!$project) {
+            return $this->response(['success' => false, 'error' => 'Not found']);
+        }
+
+        if (!$chart['success']) {
+            return $this->response(['success' => false, 'error' => 'Error retrieving chart data']);
+        }
+
+        $stitch_shape = \Cookie::get('stitch_shape', 'square');
+        $default_page = \Cookie::get('default_page', 'screenshot');
+
+        return $this->response([
+            'success' => true,
+            'project' => $project,
+            'chart' => $chart['chart'],
+            'stitch_shape' => $stitch_shape,
+            'default_page' => $default_page
+        ]);
+    }
+
+    public function post_preference()
+    {
+        if (!\Input::is_ajax()) {
+            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+        }
+
+        $default_page = \Input::post('default_page');
+        if ($default_page && !in_array($default_page, ['screenshot', 'custom'])) {
+            return $this->response(['success' => false, 'error' => 'Invalid default page'], 400);
+        }
+
+        $stitch_shape = \Input::post('stitch_shape');
+        if ($stitch_shape && !in_array($stitch_shape, ['square', 'knit'])) {
+            return $this->response(['success' => false, 'error' => 'Invalid stitch shape'], 400);
+        }
+
+        if ($default_page) \Cookie::set('default_page', $default_page, 60 * 60 * 24 * 30);
+        if ($stitch_shape) \Cookie::set('stitch_shape', $stitch_shape, 60 * 60 * 24 * 30);
+
+        return $this->response(['success' => true]);
+    }
+
+    public function post_chart($id)
+    {
+        if (!\Input::is_ajax()) {
+            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+        }
+
+        $width = (int) \Input::post('width', 20);
+        $height = (int) \Input::post('height', 20);
+        $cells_data = json_decode(\Input::post('cells', '[]'), true);
+        \Log::debug('Received chart data: ' . print_r($cells_data, true));
+
+        if ($width < 1 || $width > 50 || $height < 1 || $height > 50) {
+            return $this->response(['success' => false, 'error' => 'Width and height must be between 1 and 50'], 400);
+        }
+
+        \Log::debug('Width: ' . $width . ', Height: ' . $height);
+
+        $cells_data = array_filter($cells_data, function($cell) use ($width, $height) {
+            return isset($cell['x'], $cell['y'], $cell['color']) &&
+                   is_int($cell['x']) && is_int($cell['y']) &&
+                   $cell['x'] >= 0 && $cell['x'] < $width &&
+                   $cell['y'] >= 0 && $cell['y'] < $height &&
+                   preg_match('/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/', $cell['color']);
+        });
+
+        \Log::debug('Filtered cells data: ' . print_r($cells_data, true));
+
+        if (count($cells_data) === 0) {
+            return $this->response(['success' => true, 'message' => 'No cells to save']);
+        }
+
+        $result = \Model_Customchart::save_chart(
+            $this->current_user->id,
+            $id,
+            $width,
+            $height,
+            $cells_data
+        );
+
+        if ($result["success"]) {
+            return $this->response(['success' => true]);
+        } else {
+            return $this->response(['success' => false, 'message' => $result["message"]], 500);
+        }
+    }
 }

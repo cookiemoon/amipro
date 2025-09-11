@@ -2,15 +2,15 @@
 
 namespace Fuel\Migrations;
 
-class Create_project_technique
+class Create_custom_chart
 {
     public function up()
     {
-        \DBUtil::create_table('project_technique', [
+        \DBUtil::create_table('custom_chart', [
             'project_id' => ['type' => 'int', 'constraint' => 16, 'unsigned' => true],
-            'technique'  => ['type' => 'varchar', 'constraint' => 255],
-        ], 
-        ['project_id', 'technique']);
+            'size_x'  => ['type' => 'int', 'constraint' => 6],
+            'size_y'  => ['type' => 'int', 'constraint' => 6],
+        ], ['project_id']);
     }
 
     public function down()

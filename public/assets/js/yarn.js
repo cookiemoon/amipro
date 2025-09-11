@@ -107,7 +107,8 @@ function AppViewModel(initialData) {
 
             const isEdit = !!self.currentEditYarn();
 
-            formData.append('item_id', self.newYarn.id);
+            if(isEdit) formData.append('item_id', self.newYarn.id);
+            
             formData.append('item_type', 'yarn');
 
             const url = isEdit ? `${baseUrl}projects/edit` : `${baseUrl}projects/create`;

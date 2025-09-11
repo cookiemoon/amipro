@@ -54,6 +54,7 @@ class Model_User extends \Orm\Model
             // If the password is correct, set the session and return the user ID
             \Log::debug('Password verified for user ID: ' . $user->id, __METHOD__);
             \Session::set('user_id', $user->id);
+            \Cookie::set('user_id', $user->id, 60 * 60 * 24 * 30);
             return $user->id;
         }
 

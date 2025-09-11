@@ -26,6 +26,11 @@ class Model_Project extends \Orm\Model
     protected static $_has_many = [
         'project_techniques' => ['model_to' => 'Model_ProjectTechnique', 'key_from' => 'id', 'key_to' => 'project_id'],
         'yarn' => ['model_to' => 'Model_Yarn', 'key_from' => 'id', 'key_to' => 'project_id'],
+        'custom_chart_cells' => ['model_to' => 'Model_Customchartcell', 'key_from' => 'id', 'key_to' => 'project_id', 'cascade_save' => true, 'cascade_delete' => true],
+    ];
+
+    protected static $_has_one = [
+        'custom_chart' => ['model_to' => 'Model_Customchart', 'key_from' => 'id', 'key_to' => 'project_id', 'cascade_save' => true, 'cascade_delete' => true],
     ];
 
     // READ
@@ -61,6 +66,11 @@ class Model_Project extends \Orm\Model
             \Log::error('Get user projects error: ' . $e->getMessage());
             return ['projects' => []];
         }
+    }
+
+    public static function verify_ownership($user_id, $project_id) {
+        $project = static::find($project_id);
+        return $project && $project->user_id == $user_id;
     }
 
     protected static function format_project_for_display($project, $detail = false)
@@ -136,10 +146,11 @@ class Model_Project extends \Orm\Model
             'created_text' => $project->created_at ? date('Y年m月d日', strtotime($project->created_at)) : null,
             'completed_text' => $project->completed_at ? date('Y年m月d日', strtotime($project->completed_at)) : null,
             'status' => $project->status,
-            'technique_names' => $technique_names, // Pass the fetched techniques
+            'technique_names' => $technique_names,
             'memo' => $project->memo,
             'yarn_name' => $yarn_name,
             'yarn_info' => $yarn_info,
+            'colorwork_url' => $project->colorwork_url,
         ];
     }
 

@@ -145,11 +145,8 @@ class Model_Yarn extends \Orm\Model
     {
         // Check if associated project actually belongs to the user
         if (isset($data['project_id']) && $data['project_id'] != "null") {
-            $project = Model_Project::query()
-                ->where('id', $data['project_id'])
-                ->where('user_id', $user_id)
-                ->get_one();
-            if (!$project) {
+            $ownership = \Model_Project::verify_ownership($user_id, $data['project_id'] ?? null);
+            if (!$ownership) {
                 \Log::warning('Attempt to associate yarn with invalid project_id ' . $data['project_id'] . ' for user_id ' . $user_id);
                 $project_id = null;
             } else {
@@ -158,7 +155,7 @@ class Model_Yarn extends \Orm\Model
         } else {
             $project_id = null;
         }
-
+        
         $yarn = static::forge([
             'user_id' => $user_id,
             'name' => $data['name'],

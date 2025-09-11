@@ -48,11 +48,13 @@
                 </div>
                 <!-- /ko -->
 
+                <!-- ko if: project().screenshot_url -->
                 <div class="elem-spacer"></div>
                 <p data-bind="text: project().status_text"></p>
                 <div class="elem-spacer"></div>
+                <!-- /ko -->
 
-                <!-- ko if: project().status == 1 || project().status == 2 || project().status == 3 -->
+                <!-- ko if: (project().status == 1 || project().status == 2 || project().status == 3) && project().screenshot_url -->
                 <div class="progress-bar-container">
                     <div class="progress-bar" data-bind="style: { width: project().progress + '%' }"></div>
                 </div>
@@ -81,6 +83,15 @@
                 <ul data-bind="foreach: project().yarn_name">
                     <li data-bind="text: $data"></li>
                 </ul>
+                <!-- /ko -->
+
+                <!-- ko ifnot: project().screenshot_url -->
+                <div class="elem-spacer"></div>
+                <p data-bind="text: project().status_text"></p>
+                <div class="elem-spacer"></div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" data-bind="style: { width: project().progress + '%' }"></div>
+                </div>
                 <!-- /ko -->
             </div>
 
@@ -111,152 +122,150 @@
                 <button class="plus" data-bind="click: incrementRow">＋</button>
             </div>
         </div>
+    </div>
 
-        <div class="modal-overlay" data-bind="visible: showModal">
-            <div class="modal-window">
-                <h2>プロジェクトを編集</h2>
+    <div class="modal-overlay" data-bind="visible: showModal">
+        <div class="modal-window">
+            <h2>プロジェクトを編集</h2>
 
-                <form>
-                    <label>
-                        プロジェクト名: <span class="required">*</span>
-                        <input type="text" data-bind="value: toEdit.name">
-                    </label>
+            <form>
+                <label>
+                    プロジェクト名: <span class="required">*</span>
+                    <input type="text" data-bind="value: toEdit.name">
+                </label>
 
-                    <!-- Object Type -->
-                    <label>
-                        プロジェクトタイプ: <span class="required">*</span>
-                        <input type="text" data-bind="value: toEdit.objectType" placeholder="例: セーター">
-                    </label>
+                <!-- Object Type -->
+                <label>
+                    プロジェクトタイプ: <span class="required">*</span>
+                    <input type="text" data-bind="value: toEdit.objectType" placeholder="例: セーター">
+                </label>
 
-                    <!-- Techniques -->
-                    <label>
-                        技法 (選択可能):
+                <!-- Techniques -->
+                <label>
+                    技法 (選択可能):
 
-                        <!-- Free input for custom technique -->
-                        <div class="custom-technique-input">
-                            <input type="text" placeholder="カスタム技法を追加"
-                                data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }">
-                            <button type="button" data-bind="click: addCustomTechnique">追加</button>
-                        </div>
-
-
-                        <!-- Live preview of selected techniques -->
-                        <div class="tech-preview" data-bind="foreach: toEdit.techniques">
-                            <span class="tech-tag">
-                                <span data-bind="text: $data"></span>
-                                <button type="button" data-bind="click: $parent.removeTechnique">×</button>
-                            </span>
-                        </div>
-                    </label>
-
-                    <div class="completion-date-container">
-                        <label>
-                            開始日:
-                            <input type="date" data-bind="value: toEdit.startDate">
-                        </label>
+                    <!-- Free input for custom technique -->
+                    <div class="custom-technique-input">
+                        <input type="text" placeholder="カスタム技法を追加"
+                            data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }">
+                        <button type="button" data-bind="click: addCustomTechnique">追加</button>
                     </div>
 
-                    <label>
-                        状態:
-                        <select data-bind="value: toEdit.status">
-                            <!-- ko foreach: statusOptions -->
-                            <option data-bind="value: value, text: label"></option>
-                            <!-- /ko -->
-                        </select>
-                    </label>
 
-                    <!-- Progress slider for 進行中 or 中断中 -->
-                    <div class="progress-container" data-bind="visible: showProgress">
-                        <label>
-                            進捗 (%):
-                            <input type="range" min="0" max="100" data-bind="value: toEdit.progress">
-                            <span data-bind="text: toEdit.progress"></span>%
-                        </label>
-                    </div>
-
-                    <!-- Completion date picker for 完了 -->
-                    <div class="completion-date-container" data-bind="visible: showCompletionDate">
-                        <label>
-                            完了日:
-                            <input type="date" data-bind="value: toEdit.completionDate">
-                        </label>
-                    </div>
-
-                    <!-- Yarn Selection -->
-                    <label>
-                        毛糸:
-                        <div class="searchable-dropdown">
-                            <input type="text"
-                                placeholder="毛糸を検索..."
-                                data-bind="value: yarnSearch, valueUpdate: 'afterkeydown'">
-
-                            <ul data-bind="foreach: filteredYarns, visible: dropdownOpen">
-                                <!-- ko if: color -->
-                                <li data-bind="text: name + ' (' + color + ')', click: $parent.selectYarn"></li>
-                                <!-- /ko -->
-                                <!-- ko ifnot: color -->
-                                <li data-bind="text: name, click: $parent.selectYarn"></li>
-                                <!-- /ko -->
-                            </ul>
-
-                            <div class="no-results" data-bind="visible: yarnSearch() && filteredYarns().length === 0">
-                                使える毛糸が見つかりません。
-                            </div>
-                        </div>
-                    </label>
-
-                    <!-- Selected yarn tags -->
-                    <div class="selected-yarns" data-bind="foreach: selectedYarns">
-                        <span class="tag">
-                            <!-- ko if: color -->
-                            <span data-bind="text: name + ' (' + color + ')'"></span>
-                            <!-- /ko -->
-                            <!-- ko ifnot: color -->
-                            <span data-bind="text: name"></span>
-                            <!-- /ko -->
-                            <button type="button" data-bind="click: $parent.removeYarn">×</button>
+                    <!-- Live preview of selected techniques -->
+                    <div class="tech-preview" data-bind="foreach: toEdit.techniques">
+                        <span class="tech-tag">
+                            <span data-bind="text: $data"></span>
+                            <button type="button" data-bind="click: $parent.removeTechnique">×</button>
                         </span>
                     </div>
+                </label>
 
-                    <!-- Memo -->
-                    <label>メモ:</label>
-                    <textarea data-bind="value: toEdit.memo" 
-                            placeholder="ここに自由にメモを入力できます..."
-                            rows="6"></textarea>
-
-                    <!-- Screenshot -->
+                <div class="completion-date-container">
                     <label>
-                        スクリーンショットURL:
-                        <input type="text" data-bind="value: toEdit.screenshotUrl" placeholder="https://example.com/image.jpg">
+                        開始日:
+                        <input type="date" data-bind="value: toEdit.startDate">
                     </label>
+                </div>
 
-                    <!-- Live preview -->
-                    <div class="screenshot-preview" data-bind="visible: screenshotPreview">
-                        <p>プレビュー:</p>
-                        <img data-bind="attr: { src: screenshotPreview }" alt="スクリーンショットプレビュー">
-                    </div>
+                <label>
+                    状態:
+                    <select data-bind="value: toEdit.status">
+                        <!-- ko foreach: statusOptions -->
+                        <option data-bind="value: value, text: label"></option>
+                        <!-- /ko -->
+                    </select>
+                </label>
 
-                    <!-- Colorwork -->
+                <!-- Progress slider for 進行中 or 中断中 -->
+                <div class="progress-container" data-bind="visible: showProgress">
                     <label>
-                        カラーチャートURL:
-                        <input type="text" data-bind="value: toEdit.colorworkUrl" placeholder="https://example.com/image.jpg">
+                        進捗 (%):
+                        <input type="range" min="0" max="100" data-bind="value: toEdit.progress">
+                        <span data-bind="text: toEdit.progress"></span>%
                     </label>
+                </div>
 
-                    <!-- Live preview -->
-                    <div class="screenshot-preview" data-bind="visible: colorworkScreenshotPreview">
-                        <p>プレビュー:</p>
-                        <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="スクリーンショットプレビュー">
-                    </div>
+                <!-- Completion date picker for 完了 -->
+                <div class="completion-date-container" data-bind="visible: showCompletionDate">
+                    <label>
+                        完了日:
+                        <input type="date" data-bind="value: toEdit.completionDate">
+                    </label>
+                </div>
 
-                    <div class="modal-actions">
-                    <button type="button" data-bind="click: submitToEdit, enable: isFormValid">保存</button>
-                    <button type="button" data-bind="click: closeModal">キャンセル</button>
+                <!-- Yarn Selection -->
+                <label>
+                    毛糸:
+                    <div class="searchable-dropdown">
+                        <input type="text"
+                            placeholder="毛糸を検索..."
+                            data-bind="value: yarnSearch, valueUpdate: 'afterkeydown'">
+
+                        <ul data-bind="foreach: filteredYarns, visible: dropdownOpen">
+                            <!-- ko if: color -->
+                            <li data-bind="text: name + ' (' + color + ')', click: $parent.selectYarn"></li>
+                            <!-- /ko -->
+                            <!-- ko ifnot: color -->
+                            <li data-bind="text: name, click: $parent.selectYarn"></li>
+                            <!-- /ko -->
+                        </ul>
+
+                        <div class="no-results" data-bind="visible: yarnSearch() && filteredYarns().length === 0">
+                            使える毛糸が見つかりません。
+                        </div>
                     </div>
-                </form>
-            </div>
+                </label>
+
+                <!-- Selected yarn tags -->
+                <div class="selected-yarns" data-bind="foreach: selectedYarns">
+                    <span class="tag">
+                        <!-- ko if: color -->
+                        <span data-bind="text: name + ' (' + color + ')'"></span>
+                        <!-- /ko -->
+                        <!-- ko ifnot: color -->
+                        <span data-bind="text: name"></span>
+                        <!-- /ko -->
+                        <button type="button" data-bind="click: $parent.removeYarn">×</button>
+                    </span>
+                </div>
+
+                <!-- Memo -->
+                <label>メモ:</label>
+                <textarea data-bind="value: toEdit.memo" 
+                        placeholder="ここに自由にメモを入力できます..."
+                        rows="6"></textarea>
+
+                <!-- Screenshot -->
+                <label>
+                    スクリーンショットURL:
+                    <input type="text" data-bind="value: toEdit.screenshotUrl" placeholder="https://example.com/image.jpg">
+                </label>
+
+                <!-- Live preview -->
+                <div class="screenshot-preview" data-bind="visible: screenshotPreview">
+                    <p>プレビュー:</p>
+                    <img data-bind="attr: { src: screenshotPreview }" alt="スクリーンショットプレビュー">
+                </div>
+
+                <!-- Colorwork -->
+                <label>
+                    カラーチャートURL:
+                    <input type="text" data-bind="value: toEdit.colorworkUrl" placeholder="https://example.com/image.jpg">
+                </label>
+
+                <!-- Live preview -->
+                <div class="screenshot-preview" data-bind="visible: colorworkScreenshotPreview">
+                    <p>プレビュー:</p>
+                    <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="スクリーンショットプレビュー">
+                </div>
+
+                <div class="modal-actions">
+                <button type="button" data-bind="click: submitToEdit, enable: isFormValid">保存</button>
+                <button type="button" data-bind="click: closeModal">キャンセル</button>
+                </div>
+            </form>
         </div>
-
-
     </div>
 </div>
 

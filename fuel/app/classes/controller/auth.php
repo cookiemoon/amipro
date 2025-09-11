@@ -17,7 +17,10 @@ class Controller_Auth extends Controller_Hybrid
     // --- LOGIN ACTIONS ---
     public function get_login()
     {
-        if (\Session::get('user_id')) {
+        if (\Session::get('user_id') || \Cookie::get('user_id')) {
+            if (!\Session::get('user_id') && \Cookie::get('user_id')) {
+                \Session::set('user_id', \Cookie::get('user_id'));
+            }
             \Response::redirect('dashboard');
         }
         
@@ -46,7 +49,10 @@ class Controller_Auth extends Controller_Hybrid
     // --- REGISTRATION ACTIONS ---
     public function get_register()
     {
-        if (\Session::get('user_id')) {
+        if (\Session::get('user_id') || \Cookie::get('user_id')) {
+            if (!\Session::get('user_id') && \Cookie::get('user_id')) {
+                \Session::set('user_id', \Cookie::get('user_id'));
+            }
             \Response::redirect('dashboard');
         }
 
@@ -90,6 +96,7 @@ class Controller_Auth extends Controller_Hybrid
     public function action_logout()
     {
         \Session::delete('user_id');
+        \Cookie::delete('user_id');
         \Response::redirect('auth/login');
     }
 }
