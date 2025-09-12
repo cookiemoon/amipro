@@ -2,6 +2,7 @@ function ProjectDetailViewModel(projectId) {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl;
 
+    // Project details
     self.project = ko.observable({});
     self.rowCount = ko.observable(0);
     self.showModal = ko.observable(false);
@@ -12,6 +13,7 @@ function ProjectDetailViewModel(projectId) {
 
     self.dropdownOpen = ko.observable(false);
 
+    // Row Counter
     self.incrementRow = () => {
         if (self.rowCount() < 999) self.rowCount(self.rowCount() + 1);
     }
@@ -19,6 +21,7 @@ function ProjectDetailViewModel(projectId) {
         if (self.rowCount() > 0) self.rowCount(self.rowCount() - 1);
     };
 
+    // Delete project
     self.deleteProject = () => {
         if (!confirm("本当に削除しますか？")) return;
 
@@ -34,12 +37,13 @@ function ProjectDetailViewModel(projectId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                window.location.href = `${baseUrl}projects`; // back to list
+                window.location.href = `${baseUrl}projects`;
             }
         })
         .catch(err => console.error("Error deleting project:", err));
     };
 
+    // Load project details
     self.loadProject = function() {
         fetch(`${baseUrl}projects/detail_data/${projectId}`)
             .then(res => res.json())
@@ -84,12 +88,11 @@ function ProjectDetailViewModel(projectId) {
     });
 
     // Yarn selection
-
     self.filteredYarns = ko.computed(() => {
         const term = self.yarnSearch().toLowerCase();
         return self.availableYarns().filter(y => 
             y.name.toLowerCase().includes(term) &&
-            !self.selectedYarns().some(sy => sy.id === y.id) // exclude already selected
+            !self.selectedYarns().some(sy => sy.id === y.id)
         );
     });
 
@@ -220,7 +223,6 @@ function ProjectDetailViewModel(projectId) {
     });
 }
 
-// Activate Knockout
 document.addEventListener('DOMContentLoaded', function() {
     const projectId = document.body.dataset.projectId;
     ko.applyBindings(new ProjectDetailViewModel(projectId));

@@ -1,16 +1,13 @@
 function AppViewModel(initialData) {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl || '/';
-    // const csrfTokenKey = document.querySelector('meta[name="csrf-token-key"]').getAttribute('content');
-    
-    // --- Page State ---
+
     self.currentPage = ko.observable('list');
     self.currentPageViewModel = ko.observable();
 
-    // --- Project List ViewModel ---
     function ProjectListViewModel(data) {
         const self = this;
-        // const csrfTokenKey = data.csrfTokenKey || 'csrf_token';
+
         // Projects
         self.projects = ko.observableArray([]);
 
@@ -169,7 +166,6 @@ function AppViewModel(initialData) {
 
             const formData = new FormData();
             formData.append('item_type', 'project');
-            // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             formData.append('name', self.newProject.name().trim());
             formData.append('object_type', self.newProject.objectType().trim());
@@ -183,10 +179,6 @@ function AppViewModel(initialData) {
             formData.append('screenshot_url', self.newProject.screenshotUrl().trim());
             formData.append('colorwork_url', self.newProject.colorworkUrl().trim());
 
-            console.log(formData);
-
-            // formData.append(csrfTokenKey, csrfToken);
-
             fetch(`${baseUrl}projects/create`, {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -196,7 +188,7 @@ function AppViewModel(initialData) {
             .then(data => {
                 if (data.success) {
                     self.hideModal();
-                    self.loadProjects();
+                    window.location.href = `${baseUrl}projects/detail/${data.project_id}`;
                 } else {
                     console.error("Project creation error:",data.error);
                 }
@@ -250,24 +242,20 @@ function AppViewModel(initialData) {
         });
 
         self.logout = function() {
-            window.location.href = `${baseUrl}projects/logout`;
+            window.location.href = `${baseUrl}auth/logout`;
         };        
     }
-    
-    // --- Page Navigation ---
+
     self.changePage = function(page) {
         if (page === 'list') {
-            // initialData.csrfTokenKey = csrfTokenKey;
             self.currentPageViewModel(new ProjectListViewModel(initialData));
             self.currentPage('list');
         }
     };
 
-    // --- Start on project list ---
     self.changePage('list');
 }
 
-// --- Activate Knockout ---
 document.addEventListener('DOMContentLoaded', function() {
     ko.applyBindings(new AppViewModel(window.initialData));
 });

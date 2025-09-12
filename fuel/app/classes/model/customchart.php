@@ -4,17 +4,14 @@ class Model_Customchart extends \Orm\Model
 {
     protected static $_table_name = 'custom_chart';
 
-    // Define the composite primary key
     protected static $_primary_key = ['project_id'];
 
-    // Define the table columns
     protected static $_properties = [
         'project_id',
         'size_x',
         'size_y',
     ];
 
-    // Define the relationship back to the main project model
     protected static $_belongs_to = [
         'project' => [
             'key_from' => 'project_id',
@@ -23,7 +20,6 @@ class Model_Customchart extends \Orm\Model
         ],
     ];
 
-    // Define the relationship to custom chart cells
     protected static $_has_many = [
         'cells' => [
             'key_from' => 'project_id',
@@ -34,12 +30,16 @@ class Model_Customchart extends \Orm\Model
         ],
     ];
 
-    // READ
+    // --- READ ---
+
+    // カラーチャートデータの取得
     public static function get_chart($user_id, $project_id) {
         $ownership = \Model_Project::verify_ownership($user_id, $project_id);
         if (!$ownership) {
             return ['success' => false, 'message' => 'Project not found or access denied'];
         }
+
+        \Log::info('Retrieving custom chart for project_id: ' . $project_id, __METHOD__);
 
         try {
             $custom_chart = static::query()
@@ -78,22 +78,24 @@ class Model_Customchart extends \Orm\Model
         }
     }
 
-    // CREATE / UPDATE / DELETE
+    // --- CREATE / UPDATE / DELETE ---
+
+    // カラーチャートデータの保存
+    // 作成、編集、削除も可能
     public static function save_chart($user_id, $project_id, $height, $width, $cells_data) {
         $ownership = \Model_Project::verify_ownership($user_id, $project_id);
         if (!$ownership) {
             return ['success' => false, 'message' => 'Project not found or access denied'];
         }
 
+        \Log::info('Saving custom chart for project_id: ' . $project_id, __METHOD__);
+
         try {
-            // Start a transaction
             \DB::start_transaction();
 
-            // Check if a custom chart already exists for this project
             $custom_chart = static::query()->where('project_id', $project_id)->get_one();
 
             if (!$custom_chart) {
-                \Log::debug('Creating new custom chart for project_id: ' . $project_id);
                 $custom_chart = static::forge();
                 $custom_chart->project_id = $project_id;
                 
@@ -107,7 +109,6 @@ class Model_Customchart extends \Orm\Model
             \Model_Customchartcell::query()->where('project_id', $project_id)->delete();
 
             foreach ($cells_data as $cell) {
-                \Log::debug('Adding cell at (' . $cell['x'] . ', ' . $cell['y'] . ') with color ' . $cell['color']);
                 $new_cell = \Model_Customchartcell::forge();
                 $new_cell->project_id = $project_id;
                 $new_cell->position_x = $cell['x'];
@@ -116,12 +117,10 @@ class Model_Customchart extends \Orm\Model
                 $new_cell->save();
             }
 
-            // Commit the transaction
             \DB::commit_transaction();
 
             return ['success' => true];
         } catch (\Exception $e) {
-            // Rollback the transaction on error
             \DB::rollback_transaction();
             \Log::error('Save custom chart error: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Error saving custom chart'];

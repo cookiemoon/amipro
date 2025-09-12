@@ -34,7 +34,9 @@ class Model_Yarn extends \Orm\Model
         )
     );
 
-    // READ
+    // --- READ ---
+
+    // ユーザーの毛糸一覧を取得（オプションで利用可能な毛糸のみ）
     public static function get_user_yarn($user_id, $available=false)
     {
         try {
@@ -62,6 +64,7 @@ class Model_Yarn extends \Orm\Model
         }
     }
 
+    // フィルターオプションの取得
     protected static function get_fiber_types()
     {
         return [
@@ -71,6 +74,7 @@ class Model_Yarn extends \Orm\Model
         ];
     }
 
+    // フィルターオプションの取得
     protected static function get_yarn_weights()
     {
         return [
@@ -85,6 +89,7 @@ class Model_Yarn extends \Orm\Model
         ];
     }
 
+    // フィルターオプションの取得
     public static function get_available_filters()
     {
         return [
@@ -93,6 +98,7 @@ class Model_Yarn extends \Orm\Model
         ];
     }
 
+    // 毛糸データの表示用フォーマット
     protected static function format_yarn_for_display($yarn)
     {
         $fiber_types = [];
@@ -120,10 +126,13 @@ class Model_Yarn extends \Orm\Model
         ];
     }
 
-    // DELETE
+    // --- DELETE ---
+
+    // 毛糸を削除
     public static function delete_user_yarn($user_id, $yarn_id)
     {
         try {
+            \Log::info('Attempting to delete yarn_id ' . $yarn_id . ' for user_id ' . $user_id, __METHOD__);
             $yarn = static::query()->where('id', $yarn_id)
                                   ->where('user_id', $user_id)
                                   ->get_one();
@@ -140,10 +149,13 @@ class Model_Yarn extends \Orm\Model
         }
     }
 
-    // CREATE
+    // --- CREATE ---
+
+    // 毛糸を作成
     public static function create_yarn($user_id, $data)
     {
-        // Check if associated project actually belongs to the user
+        \Log::info('Creating new yarn for user_id ' . $user_id, __METHOD__);
+        
         if (isset($data['project_id']) && $data['project_id'] != "null") {
             $ownership = \Model_Project::verify_ownership($user_id, $data['project_id'] ?? null);
             if (!$ownership) {
@@ -177,10 +189,12 @@ class Model_Yarn extends \Orm\Model
         return ['success' => false, 'message' => '毛糸の保存に失敗しました。'];
     }
 
-    // UPDATE
+    // --- UPDATE ---
+
+    // 毛糸を編集
     public static function edit_user_yarn($user_id, $yarn_id, $data) {
         try {
-            
+            \Log::info('Attempting to edit yarn_id ' . $yarn_id . ' for user_id ' . $user_id, __METHOD__);
             $yarn = static::query()->where('id', $yarn_id)
                                   ->where('user_id', $user_id)
                                   ->get_one();

@@ -1,18 +1,14 @@
 function AppViewModel(initialData) {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl || '/';
-    // const csrfTokenKey = document.querySelector('meta[name="csrf-token-key"]').getAttribute('content');
     
-    // --- Page State ---
     self.currentPage = ko.observable('list');
     self.currentPageViewModel = ko.observable();
 
-    // --- Yarn List ViewModel ---
     function YarnListViewModel(data) {
         const self = this;
-        // const csrfTokenKey = data.csrfTokenKey || 'csrf_token';
-        // Yarns
 
+        // Yarns
         self.yarns = ko.observableArray([]);
 
         const availableProjects = Object.values(data.availableProjects || {});
@@ -30,8 +26,9 @@ function AppViewModel(initialData) {
 
         self.weightSelection = self.availableWeights.filter(w => w.key !== '全件');
 
+        // --- New Yarn Form ---
         self.newYarn = {
-            id: null,  // for editing existing yarns
+            id: null,
 
             name: ko.observable(''),
             brand: ko.observable(''),
@@ -74,7 +71,6 @@ function AppViewModel(initialData) {
             self.showCreateModal(false);
         }
 
-        // --- New Yarn Form ---
         self.isFormValid = ko.computed(() => {
             return self.newYarn.name().trim() !== '';
         });
@@ -103,7 +99,6 @@ function AppViewModel(initialData) {
         // Form submission
         self.submitNewYarn = function() {
             const formData = new FormData();
-            // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             const isEdit = !!self.currentEditYarn();
 
@@ -123,7 +118,6 @@ function AppViewModel(initialData) {
             formData.append('fiber_synthetic', self.newYarn.fibers().includes('合成繊維'));
             formData.append('fiber_desc', self.newYarn.fiberDesc().trim());
             formData.append('project_id', self.newYarn.project());
-            // formData.append(csrfTokenKey, csrfToken);
 
             fetch(url, {
                 method: 'POST',
@@ -243,24 +237,20 @@ function AppViewModel(initialData) {
 
         // --- Logout ---        
         self.logout = function() {
-            window.location.href = `${baseUrl}projects/logout`;
+            window.location.href = `${baseUrl}auth/logout`;
         };        
     }
-    
-    // --- Page Navigation ---
+
     self.changePage = function(page) {
         if (page === 'list') {
-            // initialData.csrfTokenKey = csrfTokenKey;
             self.currentPageViewModel(new YarnListViewModel(initialData));
             self.currentPage('list');
         }
     };
 
-    // --- Start on project list ---
     self.changePage('list');
 }
 
-// --- Activate Knockout ---
 document.addEventListener('DOMContentLoaded', function() {
     ko.applyBindings(new AppViewModel(window.initialData));
 });

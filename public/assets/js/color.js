@@ -2,16 +2,18 @@ function ColorworkViewModel(projectId) {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl;
 
+    // Project details
     self.project = ko.observable({});
     self.rowCount = ko.observable(0);
-    self.modeToggle = ko.observable(false); // checkbox binding
+    self.modeToggle = ko.observable(false);
     self.stitchShape = ko.observable('square');
-    self.mode = ko.observable('screenshot'); // 'image' or 'custom'
+    self.mode = ko.observable('screenshot');
     self.width = ko.observable(0);
     self.height = ko.observable(0);
     self.maxSize = 50;
     self.chart = ko.observableArray([]);
 
+    // Load project details
     self.loadProject = function() {
         fetch(`${baseUrl}projects/color_data/${projectId}`)
             .then(res => res.json())
@@ -29,6 +31,7 @@ function ColorworkViewModel(projectId) {
             .catch(err => console.error("Error loading project:", err));
     };
 
+    // Row Counter
     self.incrementRow = () => {
         if (self.rowCount() < 999) self.rowCount(self.rowCount() + 1);
     }
@@ -38,7 +41,7 @@ function ColorworkViewModel(projectId) {
 
     self.loadProject();
     
-    // send cookies to server when changing stitch shape
+    // Send cookies to server when changing stitch shape
     self.stitchShape.subscribe(val => {
         formData = new FormData();
         formData.append('stitch_shape', val);
@@ -51,7 +54,6 @@ function ColorworkViewModel(projectId) {
         })
     });
 
-    // keep them in sync
     self.modeToggle.subscribe(val => {
         self.mode(val ? "custom" : "screenshot");
     });
@@ -74,13 +76,9 @@ function ColorworkViewModel(projectId) {
     });
 
     // --- Custom chart ---
-    
-
-    // 2D array for pixels (stores hex color or empty string)
-
     self.currentColor = ko.observable('#000000');
 
-    // Initialize chart
+    // Initialize or re-initialize chart
     self.initChart = function(keep=true, cells=null) {
         let rows = [];
         if (self.width() > self.maxSize) self.width(self.maxSize);
@@ -91,7 +89,6 @@ function ColorworkViewModel(projectId) {
         for (let y = 0; y < self.height(); y++) {
             let row = [];
             for (let x = 0; x < self.width(); x++) {
-                // keep current color if possible
                 if (cells) {
                     const cell = cells.find(c => c.x === x && c.y === y);
                     row.push(cell ? cell.color : '');
@@ -109,19 +106,16 @@ function ColorworkViewModel(projectId) {
         self.chart(rows);
     };
 
-    // Paint a pixel
     self.paintPixel = function(rowIndex, colIndex) {
         let rows = self.chart().map(r => r.slice());
         rows[rowIndex][colIndex] = self.currentColor();
         self.chart(rows);
     };    
 
-    // Clear chart
     self.clearChart = function() {
         self.initChart(false);
     };
 
-    // Save chart (you can send as JSON to backend)
     self.saveChart = function() {
         formData = new FormData();
         formData.append('width', self.width());
@@ -151,7 +145,6 @@ function ColorworkViewModel(projectId) {
         });
     };
 
-    // Initialize default
     self.initChart();
 }
 

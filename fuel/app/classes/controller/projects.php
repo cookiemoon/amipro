@@ -27,6 +27,7 @@ class Controller_Projects extends Controller_Hybrid
         }
     }
 
+    // プロジェクト管理ページの表示
     public function action_index()
     {
         $this->format = 'html';
@@ -51,6 +52,7 @@ class Controller_Projects extends Controller_Hybrid
         return $this->response(View::forge('projects/index', $data));
     }
 
+    // 毛糸管理ページの表示
     public function action_yarn()
     {
         $this->format = 'html';
@@ -75,6 +77,7 @@ class Controller_Projects extends Controller_Hybrid
         return $this->response(View::forge('projects/yarn', $data));
     }
 
+    // プロジェクトデータの取得
     public function action_data()
     {
         $projects_data = \Model_Project::get_user_projects($this->current_user->id);
@@ -85,6 +88,7 @@ class Controller_Projects extends Controller_Hybrid
         ], 200, ['Content-Type' => 'application/json']);
     }
 
+    // 毛糸データの取得
     public function action_yarn_data()
     {
         $yarn_data = \Model_Yarn::get_user_yarn($this->current_user->id);
@@ -95,6 +99,7 @@ class Controller_Projects extends Controller_Hybrid
         ], 200, ['Content-Type' => 'application/json']);
     }
 
+    // プロジェクトまたは毛糸の作成
     public function post_create()
     {   
         if (!\Input::is_ajax()) {
@@ -139,6 +144,7 @@ class Controller_Projects extends Controller_Hybrid
         }
     }
 
+    // プロジェクトまたは毛糸の削除
     public function post_delete()
     {
         if (!\Input::is_ajax()) {
@@ -165,6 +171,7 @@ class Controller_Projects extends Controller_Hybrid
         }
     }
 
+    // プロジェクトまたは毛糸の編集
     public function post_edit()
     {
         if (!\Input::is_ajax()) {
@@ -190,17 +197,10 @@ class Controller_Projects extends Controller_Hybrid
         }
     }
 
-    public function action_logout()
-    {
-        Session::destroy();
-        Response::redirect('login');
-    }
-
+    // プロジェクト詳細ページの表示
     public function action_detail($id)
     {
         $project = \Model_Project::get_user_projects($this->current_user->id, $id);
-
-        \Log::debug('Fetched project: ' . print_r($project, true));
 
         if (!$project) {
             throw new HttpNotFoundException;
@@ -212,6 +212,7 @@ class Controller_Projects extends Controller_Hybrid
         return Response::forge(View::forge('projects/detail', $data));
     }
 
+    // プロジェクト詳細データの取得
     public function action_detail_data($id)
     {
         $project = \Model_Project::get_user_projects($this->current_user->id, $id);
@@ -228,6 +229,7 @@ class Controller_Projects extends Controller_Hybrid
         ]);
     }
 
+    // カラーチャートページの表示
     public function action_color($id)
     {
         $project = \Model_Project::get_user_projects($this->current_user->id, $id);
@@ -242,6 +244,7 @@ class Controller_Projects extends Controller_Hybrid
         return Response::forge(View::forge('projects/color', $data));
     }
 
+    // カラーチャートデータの取得
     public function action_color_data($id)
     {
         $project = \Model_Project::get_user_projects($this->current_user->id, $id);
@@ -267,6 +270,7 @@ class Controller_Projects extends Controller_Hybrid
         ]);
     }
 
+    // カラーチャートページのオプション保存
     public function post_preference()
     {
         if (!\Input::is_ajax()) {
@@ -289,6 +293,7 @@ class Controller_Projects extends Controller_Hybrid
         return $this->response(['success' => true]);
     }
 
+    // カラーチャートデータの保存
     public function post_chart($id)
     {
         if (!\Input::is_ajax()) {
@@ -298,13 +303,10 @@ class Controller_Projects extends Controller_Hybrid
         $width = (int) \Input::post('width', 20);
         $height = (int) \Input::post('height', 20);
         $cells_data = json_decode(\Input::post('cells', '[]'), true);
-        \Log::debug('Received chart data: ' . print_r($cells_data, true));
 
         if ($width < 1 || $width > 50 || $height < 1 || $height > 50) {
             return $this->response(['success' => false, 'error' => 'Width and height must be between 1 and 50'], 400);
         }
-
-        \Log::debug('Width: ' . $width . ', Height: ' . $height);
 
         $cells_data = array_filter($cells_data, function($cell) use ($width, $height) {
             return isset($cell['x'], $cell['y'], $cell['color']) &&
@@ -314,10 +316,8 @@ class Controller_Projects extends Controller_Hybrid
                    preg_match('/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/', $cell['color']);
         });
 
-        \Log::debug('Filtered cells data: ' . print_r($cells_data, true));
-
         if (count($cells_data) === 0) {
-            return $this->response(['success' => true, 'message' => 'No cells to save']);
+            $cells_data = [];
         }
 
         $result = \Model_Customchart::save_chart(
@@ -332,6 +332,28 @@ class Controller_Projects extends Controller_Hybrid
             return $this->response(['success' => true]);
         } else {
             return $this->response(['success' => false, 'message' => $result["message"]], 500);
+        }
+    }
+
+    // 段数カウンターの更新
+    public function post_row_counter($id)
+    {
+        if (!\Input::is_ajax()) {
+            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+        }
+
+        $row_count = \Input::post('row_count');
+
+        if ($row_count < 0 || $row_count > 999) {
+            return $this->response(['success' => false, 'error' => 'Invalid row counter value'], 400);
+        }
+
+        $result = \Model_Project::update_row_count($this->current_user->id, $id, $row_count);
+
+        if ($result['success']) {
+            return $this->response(['success' => true, 'row_count' => $new_rows]);
+        } else {
+            return $this->response(['success' => false, 'error' => $result['message']], 500);
         }
     }
 }

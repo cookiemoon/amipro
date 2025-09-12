@@ -14,7 +14,9 @@ class Controller_Auth extends Controller_Hybrid
         }
     }
 
-    // --- LOGIN ACTIONS ---
+    // --- ログイン ---
+
+    // ログインページの表示
     public function get_login()
     {
         if (\Session::get('user_id') || \Cookie::get('user_id')) {
@@ -28,6 +30,7 @@ class Controller_Auth extends Controller_Hybrid
         $this->template->content = \View::forge('auth/login');
     }
 
+    // ログイン処理
     public function post_login()
     {
         if (!\Input::is_ajax()) {
@@ -46,7 +49,9 @@ class Controller_Auth extends Controller_Hybrid
         }
     }
 
-    // --- REGISTRATION ACTIONS ---
+    // --- 新登録 ---
+
+    // 新登録ページの表示
     public function get_register()
     {
         if (\Session::get('user_id') || \Cookie::get('user_id')) {
@@ -60,11 +65,9 @@ class Controller_Auth extends Controller_Hybrid
         $this->template->content = \View::forge('auth/register');
     }
 
+    // 新登録処理
     public function post_register()
     {
-        \Log::debug('Registration attempt', __METHOD__);
-        \Log::debug('POST data: ' . print_r(\Input::post(), true), __METHOD__);
-
         if (!\Input::is_ajax()) {
             return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
         }
@@ -92,7 +95,9 @@ class Controller_Auth extends Controller_Hybrid
         return $this->response(['success' => false, 'error' => 'IDとパスワードを正しく入力してください。'], 400);
     }
 
-    // --- LOGOUT ACTION ---
+    // --- ログアウト ---
+
+    // ログアウト処理
     public function action_logout()
     {
         \Session::delete('user_id');

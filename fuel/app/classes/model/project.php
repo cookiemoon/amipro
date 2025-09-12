@@ -33,10 +33,13 @@ class Model_Project extends \Orm\Model
         'custom_chart' => ['model_to' => 'Model_Customchart', 'key_from' => 'id', 'key_to' => 'project_id', 'cascade_save' => true, 'cascade_delete' => true],
     ];
 
-    // READ
+    // --- READ ---
+
+    // ユーザーのプロジェクト一覧を取得、または特定のプロジェクトを取得
     public static function get_user_projects($user_id, $project_id = null)
     {
         try {
+            \Log::info('Fetching projects for user_id: ' . $user_id . ($project_id ? ', project_id: ' . $project_id : ''), __METHOD__);
             if ($project_id != null) {
                 $query = static::query()->where('user_id', $user_id)
                                         ->where('id', $project_id)
@@ -68,11 +71,16 @@ class Model_Project extends \Orm\Model
         }
     }
 
+    // ユーザーとプロジェクトの所有権を確認
     public static function verify_ownership($user_id, $project_id) {
         $project = static::find($project_id);
+        if ($project && $project->user_id != $user_id) {
+            \Log::warning('Unauthorized access attempt by user_id ' . $user_id . ' to project_id ' . $project_id);
+        }
         return $project && $project->user_id == $user_id;
     }
 
+    // プロジェクト情報を表示用にフォーマット
     protected static function format_project_for_display($project, $detail = false)
     {
         $status_map = [0 => '未着手', 1 => '進行中', 2 => '中断中', 3 => '完了', 4 => '放棄'];
@@ -154,6 +162,7 @@ class Model_Project extends \Orm\Model
         ];
     }
 
+    // 利用可能なフィルターオプションを取得
     public static function get_available_filters($user_id)
     {
         return [
@@ -162,6 +171,7 @@ class Model_Project extends \Orm\Model
         ];
     }
 
+    // ユーザーのプロジェクトタイプを取得
     protected static function get_project_types($user_id)
     {
         $result = \DB::select('object_type')
@@ -178,6 +188,7 @@ class Model_Project extends \Orm\Model
         return array_combine($types, $types);
     }
 
+    // ユーザーの編み技法を取得
     protected static function get_knitting_techniques($user_id)
     {
         $result = \DB::select('technique')
@@ -193,11 +204,15 @@ class Model_Project extends \Orm\Model
         return array_combine($techniques, $techniques);
     }
 
-    // CREATE
+    // --- CREATE ---
+
+    // プロジェクト作成
     public static function create_project(\Model_User $user, array $project_form)
     {
 
         \DB::start_transaction();
+
+        \Log::info('Creating new project for user_id: ' . $user->id, __METHOD__);
 
         try
         {
@@ -288,9 +303,12 @@ class Model_Project extends \Orm\Model
         }
     }
 
-    // DELETE
+    // --- DELETE ---
+
+    // プロジェクト削除
     public static function delete_user_project($user_id, $project_id) {
         try {
+            \Log::info('Attempting to delete project_id: ' . $project_id . ' for user_id: ' . $user_id, __METHOD__);
             $project = static::find($project_id);
             if (!$project || $project->user_id != $user_id) {
                 return ['success' => false, 'message' => 'Project not found or access denied'];
@@ -313,9 +331,12 @@ class Model_Project extends \Orm\Model
         }
     }
 
-    // TODO: UPDATE
+    // --- UPDATE ---
+
+    // プロジェクト編集
     public static function edit_user_project($user_id, $project_id, $data) {
         try {
+            \Log::info('Attempting to edit project_id: ' . $project_id . ' for user_id: ' . $user_id, __METHOD__);
             $project = static::find($project_id);
             if (!$project || $project->user_id != $user_id) {
                 return ['success' => false, 'message' => 'Project not found or access denied'];
@@ -363,11 +384,8 @@ class Model_Project extends \Orm\Model
 
             if (isset($data['yarn']) && !empty($data['yarn'])) {
                 $yarns = json_decode($data['yarn'], true);
-
-                \Log::debug('Updating yarn associations for project ID ' . $project_id . ' with yarns: ' . print_r($yarns, true));
-                
-                
                 $existing_yarns = \Model_Yarn::query()->where('project_id', $project_id)->get();
+                
                 if(isset($existing_yarns)) { 
                     \Log::info('Existing yarns count: ' . count($existing_yarns));
                     foreach ($existing_yarns as $yarn) {
@@ -396,6 +414,30 @@ class Model_Project extends \Orm\Model
         } catch (\Exception $e) {
             \Log::error('Error updating project: ' . $e->getMessage());
             return ['success' => false, 'message' => 'An error occurred while updating the project'];
+        }
+    }
+
+    // 段数カウンター更新
+    public static function update_row_count($user_id, $project_id, $new_row_count) {
+        try {
+            \Log::info('Updating row count for project_id: ' . $project_id . ' by user_id: ' . $user_id . ' to ' . $new_row_count, __METHOD__);
+            $project = static::find($project_id);
+            if (!$project || $project->user_id != $user_id) {
+                return ['success' => false, 'message' => 'Project not found or access denied'];
+            }
+
+            $project->row_counter = $new_row_count;
+
+            if (!$project->save()) {
+                $error = $project->validation()->error();
+                \Log::error('Project model failed to save during row count update. Validation Error: ' . print_r($error, true));
+                return ['success' => false, 'message' => 'Failed to update row count'];
+            }
+
+            return ['success' => true];
+        } catch (\Exception $e) {
+            \Log::error('Error updating row count: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'An error occurred while updating the row count'];
         }
     }
 }
