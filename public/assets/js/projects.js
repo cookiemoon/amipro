@@ -181,8 +181,8 @@ function AppViewModel(initialData) {
         self.newProject.progress(100);
       }
 
-      if (self.newProject.progress() === 0 || self.newProject.progress() < 0) {
-        self.newProject.status(0);
+      if (self.newProject.progress() < 0) {
+        self.newProject.progress(0);
       }
 
       if (self.newProject.name().length > 32) {

@@ -17,15 +17,11 @@ RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
-# --- THE FIX ---
-# Copy ALL application files first, including the 'oil' script.
 COPY . .
 
-# Now that 'oil' is present, run composer install. The scripts will now succeed.
 RUN composer install --verbose
 
 # --- Automatic Permissions Fix ---
-# This script runs on container startup to match host user permissions.
 RUN echo '#!/bin/sh' > /usr/local/bin/entrypoint.sh && \
     echo 'HOST_UID=$(stat -c %u /var/www/html)' >> /usr/local/bin/entrypoint.sh && \
     echo 'HOST_GID=$(stat -c %g /var/www/html)' >> /usr/local/bin/entrypoint.sh && \

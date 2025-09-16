@@ -31,3 +31,6 @@ desktop.ini
 /fuel/app/logs/*/*/*
 /fuel/app/cache/*/*
 /fuel/app/config/crypt.php
+
+# local development config files
+/fuel/app/config/development/*
