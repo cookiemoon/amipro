@@ -257,7 +257,7 @@
         </label>
 
         <!-- Live preview -->
-        <div class="screenshot-preview" data-bind="visible: colorworkScreenshotPreview">
+        <div class="colorwork-preview" data-bind="visible: colorworkScreenshotPreview">
           <p>プレビュー:</p>
           <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="スクリーンショットプレビュー">
         </div>

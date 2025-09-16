@@ -104,6 +104,7 @@
 
       <!-- Row counter -->
       <div class="row-controls">
+        <p>段数</p>
         <div class="row-counter">
           <button class="minus" data-bind="click: decrementRow">−</button>
           <span class="rows" data-bind="text: rowCount"></span>
@@ -246,7 +247,7 @@
         </label>
 
         <!-- Live preview -->
-        <div class="screenshot-preview" data-bind="visible: colorworkScreenshotPreview">
+        <div class="colorwork-preview" data-bind="visible: colorworkScreenshotPreview">
           <p>プレビュー:</p>
           <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="スクリーンショットプレビュー">
         </div>

@@ -32,7 +32,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(90deg, #ff69b4 0%, #87ceeb 100%);
+  background: linear-gradient(90deg, var(--gradient-pink) 0%, var(--gradient-blue) 100%);
 }
 
 .header h1 {
@@ -205,7 +205,7 @@ body.register-page .input-group.password-confirm {
 
 .registration-link a.gradient-text,
 .login-link a.gradient-text {
-  background: linear-gradient(90deg, #ff69b4 0%, #87ceeb 100%);
+  background: linear-gradient(90deg, var(--gradient-pink) 0%, var(--gradient-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

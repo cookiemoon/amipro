@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($title) ? $title : 'あみぷろ'; ?></title>
     <meta name="csrf-token" content="<?php echo \Security::fetch_token(); ?>">
-    
+    <link rel="stylesheet" href="<?php echo \Uri::base(); ?>assets/css/color_vars.css">
     <?php
     if (isset($css)):
         echo \Asset::css($css);

@@ -1,0 +1,14 @@
+:root {
+  --gradient-blue: #87ceeb;
+  --gradient-pink: #ff69b4;
+  --button-purple: rgb(168, 140, 210);
+  --button-hover-purple: rgb(146, 115, 187);
+  --button-pink: rgb(244, 92, 170);
+  --button-hover-pink: rgb(214, 62, 140);
+  --button-blue: rgb(109, 162, 255);
+  --button-hover-blue: rgb(79, 132, 255);
+  --tag-pink: rgb(244,181,235);
+  --tag-blue: rgb(176,203,251);
+  --tag-text-pink: rgb(173,76,119);
+  --tag-text-blue: rgb(62,88,152);
+}

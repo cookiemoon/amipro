@@ -26,7 +26,7 @@ body {
   align-items: center;
   justify-content: flex-end;
   padding-right: 2rem;
-  background: linear-gradient(90deg, #ff69b4 0%, #87ceeb 100%);
+  background: linear-gradient(90deg, var(--gradient-pink) 0%, var(--gradient-blue) 100%);
 }
 
 .header h1 {
@@ -54,9 +54,9 @@ body {
   color: white;
   text-decoration: none;
   border-radius: 4px;
-  background-color: rgb(138, 138, 200);
+  background-color: var(--button-purple);
 }
 
 .return-link:hover {
-  background-color: rgb(109, 109, 190);
+  background-color: var(--button-hover-purple);
 }

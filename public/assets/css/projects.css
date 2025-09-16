@@ -26,7 +26,7 @@ body {
   left: 0;
   width: 100%;
   height: 96px;
-  background: linear-gradient(90deg, #ff69b4 0%, #87ceeb 100%);
+  background: linear-gradient(90deg, var(--gradient-pink) 0%, var(--gradient-blue) 100%);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -206,7 +206,7 @@ body {
 .create-project-link {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: rgb(138, 138, 200);
+  background: var(--button-purple);
   color: white;
   text-decoration: none;
   border-radius: 8px;
@@ -214,7 +214,7 @@ body {
 }
 
 .create-project-link:hover {
-  background: rgb(109, 109, 190);
+  background: var(--button-hover-purple);
 }
 
 /* LOGOUT */
@@ -227,14 +227,14 @@ body {
 
 .logout-button {
   padding: 0.5rem 1rem;
-  background-color: rgb(138, 138, 200);
+  background-color: var(--button-purple);
   color: white;
   text-decoration: none;
   border-radius: 6px;
 }
 
 .logout-button:hover {
-  background: rgb(109, 109, 190);
+  background: var(--button-hover-purple);
 }
 
 /* FAB */
@@ -249,7 +249,7 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgb(138, 138, 200);
+  background: var(--button-purple);
   color: white;
   text-decoration: none;
   display: flex;
@@ -343,27 +343,27 @@ body {
 }
 
 .detail-link {
-  background-color: rgb(138, 138, 200);
+  background-color: var(--button-purple);
 }
 
 .delete-link {
-  background-color: rgb(244, 92, 170); /* Pink */
+  background-color: var(--button-pink); /* Pink */
 }
 
 .edit-link {
-  background-color: rgb(109, 162, 255); /* Blue */
+  background-color: var(--button-blue); /* Blue */
 }
 
 .edit-link:hover {
-  background-color: rgb(79, 132, 255);
+  background-color: var(--button-hover-blue);
 }
 
 .delete-link:hover {
-  background-color: rgb(214, 62, 140);
+  background-color: var(--button-hover-pink);
 }
 
 .detail-link:hover {
-  background-color: rgb(109, 109, 190);
+  background-color: var(--button-hover-purple);
 }
 
 .project-actions {
@@ -399,7 +399,7 @@ body {
   bottom:0;
   width:350px;
   position: absolute;
-  background-image: linear-gradient(90deg, #87ceeb 0%, #ff69b4 100%);
+  background-image: linear-gradient(90deg, var(--gradient-blue) 0%, var(--gradient-pink) 100%);
 }
 
 .project-tags {
@@ -418,17 +418,17 @@ body {
 }
 
 .type-tag {
-  background-color: rgb(244,181,235); /* Pink */
-  color: rgb(173,76,119);
+  background-color: var(--tag-pink); /* Pink */
+  color: var(--tag-text-pink);
 }
 
 .tech-tag {
-  background-color: rgb(176,203,251); /* Blue */
-  color: rgb(62,88,152);
+  background-color: var(--tag-blue); /* Blue */
+  color: var(--tag-text-blue);
 }
 
 .fab-button:hover {
-  background-color: rgb(109, 109, 190);
+  background-color: var(--button-hover-purple);
 }
 
 /* MODAL STYLING */
@@ -484,7 +484,7 @@ body {
 }
 
 .modal-window input[type="text"]:focus {
-  border-color: rgb(138, 138, 200);
+  border-color: var(--button-purple);
 }
 
 .modal-actions {
@@ -506,12 +506,12 @@ body {
 
 /* Primary create button */
 .modal-actions button:first-child {
-  background-color: rgb(138, 138, 200);
+  background-color: var(--button-purple);
   color: #fff;
 }
 
 .modal-actions button:first-child:hover {
-  background-color: rgb(109, 109, 190);
+  background-color: var(--button-hover-purple);
   transform: translateY(-2px);
 }
 
@@ -570,22 +570,30 @@ body {
 }
 
 .techniques-container button.selected-tech {
-  background: rgb(138, 138, 200);
+  background: var(--button-purple);
   color: #fff;
-  border-color: rgb(109, 109, 190);
+  border-color: var(--button-hover-purple);
 }
 
+.colorwork-preview,
 .screenshot-preview {
   margin-top: 10px;
   text-align: center;
 }
 
 .screenshot-preview img {
-  max-width: 120px;
-  max-height: 120px;
+  width: 120px;
+  height: 120px;
   border-radius: 8px;
   border: 1px solid #ccc;
   object-fit: cover;
+}
+
+.colorwork-preview img {
+  max-width: 300px;
+  max-height: 300px;
+  border: 1px solid #ccc;
+  object-fit: contain;
 }
 
 .searchable-dropdown {
@@ -603,7 +611,7 @@ body {
 }
 
 .searchable-dropdown input:focus {
-  border-color: rgb(138, 138, 200);
+  border-color: var(--button-purple);
   box-shadow: 0 0 0 3px rgba(74,144,226,0.2);
 }
 
@@ -650,9 +658,9 @@ body {
 }
 
 .techniques-container button.selected-tech {
-  background: rgb(138, 138, 200);
+  background: var(--button-purple);
   color: #fff;
-  border-color: rgb(109, 109, 190);
+  border-color: var(--button-hover-purple);
 }
 
 .custom-technique-input {
@@ -675,7 +683,7 @@ body {
   padding: 0.4rem 1rem;
   border-radius: 6px;
   border: none;
-  background-color: rgb(138, 138, 200);
+  background-color: var(--button-purple);
   color: #fff;
   cursor: pointer;
   font-size: 1rem;
@@ -684,7 +692,7 @@ body {
 }
 
 .custom-technique-input button:hover {
-  background-color: rgb(109, 109, 190);
+  background-color: var(--button-hover-purple);
 }
 
 .tech-preview {
@@ -734,11 +742,11 @@ body {
 }
 
 .project-status a {
-  color: rgb(138, 138, 200);
+  color: var(--button-purple);
 }
 
 .project-status a:hover {
-  color:rgb(109, 109, 190);
+  color:var(--button-hover-purple);
 }
 
 .selected-yarns {
@@ -751,7 +759,7 @@ body {
 .selected-yarns .tag {
   display: flex;
   align-items: center;
-  background-color: rgb(138, 138, 200);
+  background-color: var(--button-purple);
   color: #fff;
   padding: 3px 8px;
   border-radius: 4px;
@@ -770,5 +778,5 @@ body {
 }
 
 .selected-yarns .tag button:hover {
-  color: rgb(109, 109, 190);
+  color: var(--button-hover-purple);
 }

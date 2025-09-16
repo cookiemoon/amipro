@@ -33,7 +33,12 @@
 
       <!-- Image mode -->
       <div data-bind="visible: mode() === 'screenshot'">
+        <!-- ko if: project().colorwork_url -->
         <img data-bind="attr: { src: project().colorwork_url }" class="colorwork-image">
+        <!-- /ko -->
+        <!-- ko ifnot: project().colorwork_url -->
+        <p class="no-image-text">カラーチャート画像がありません。</p>
+        <!-- /ko -->
       </div>
 
       <!-- Custom mode -->
@@ -85,6 +90,7 @@
     </div>
 
     <div class="row-controls">
+      <p>段数</p>
       <div class="row-counter">
           <button class="minus" data-bind="click: decrementRow">−</button>
           <span class="rows" data-bind="text: rowCount"></span>
