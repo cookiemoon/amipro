@@ -13,7 +13,7 @@
 return array(
     // --- Core Routes ---
     '_root_'  => 'projects/index', // Send logged-in users to projects
-    '_404_'   => 'welcome/404',    // Your 404 page
+    '_404_'   => 'welcome/404',
 
     // --- Authentication Routes ---
     'login' => 'auth/login',

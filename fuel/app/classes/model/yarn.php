@@ -47,9 +47,12 @@ class Model_Yarn extends \Orm\Model
         $query = static::query()->where('user_id', $user_id);
       }
       
-      $yarn_items = $query->order_by('brand', 'name')->get();
+      $yarn_items = $query->order_by(\DB::expr("brand = ''"), 'asc')
+                    ->order_by('brand','asc')
+                    ->order_by('name', 'asc')
+                    ->get();
       
-      $formatted_yarn = array_map([__CLASS__, 'format_yarn_for_display'], $yarn_items);
+      $formatted_yarn = array_values(array_map([__CLASS__, 'format_yarn_for_display'], $yarn_items));
       
       return [
         'yarn'  => $formatted_yarn,

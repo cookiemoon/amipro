@@ -17,7 +17,13 @@ function AppViewModel(initialData) {
     // Projects
     self.projects = ko.observableArray([]);
 
-    const availableYarns = Object.values(data.availableYarns || {});
+    let availableYarns = Object.values(data.availableYarns || {});
+    // decode HTML entities in yarn names
+    availableYarns.forEach(y => {
+      const txt = document.createElement('textarea');
+      txt.innerHTML = y.name;
+      y.name = txt.value;
+    });
     self.availableYarns = ko.observableArray(availableYarns || []);
 
     // Filters & search
@@ -119,12 +125,23 @@ function AppViewModel(initialData) {
     });
 
     // Techniques options
-    self.suggestedTechniques = ko.observableArray(data.suggestedTechniques || [
-      'ビーズ', 'ケーブル編み', 'フェアアイル', '交差編み', '配色編み',
-      'かぎ針編み', '引き返し編み', 'レース'
+    self.suggestedTechniques = ko.observableArray([
+      'ビーズ', 'ケーブル編み', '配色編み', 'かぎ針編み', '引き返し編み', 'レース', 'リブ編み'
     ]);
 
-    self.toggleTechnique = function(tech) {
+    const mergedTechniques = [...self.suggestedTechniques(), ...self.availableTechniques.map(t => {
+      const txt = document.createElement('textarea');
+      txt.innerHTML = t.name;
+      return txt.value;
+    })].filter((item, index, arr) => arr.indexOf(item) === index);
+
+    self.suggestedTechniques(mergedTechniques);
+
+    self.toggleTechnique = function(tech, event) {
+      console.log("Toggling technique:", tech);
+      console.log("Event:", event);
+      if(!tech) return;
+      event.stopPropagation();
       if (!self.newProject.techniques().includes(tech)) {
         self.newProject.techniques.push(tech);
       } else {

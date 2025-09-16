@@ -205,7 +205,7 @@
 <script>
 window.initialData = {
   filters: <?php echo json_encode($available_filters ?? [], JSON_UNESCAPED_UNICODE); ?>,
-  availableProjects: <?php echo json_encode($available_projects ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_AMP); ?>,
+  availableProjects: <?php echo json_encode($available_projects ?? [], JSON_UNESCAPED_UNICODE); ?>,
   selected: <?php echo json_encode($selected_filters ?? [], JSON_UNESCAPED_UNICODE); ?>,
   searchQuery: "<?php echo Security::htmlentities($search_query ?? ''); ?>"
 };

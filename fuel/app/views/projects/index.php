@@ -134,11 +134,15 @@
         <!-- Techniques -->
         <label>
           技法 (選択可能):
-          <div class="techniques-container" data-bind="foreach: suggestedTechniques">
+          <div class="techniques-container" data-bind="click: function() { }">
+            <!-- ko foreach: suggestedTechniques -->
             <button type="button"
-                data-bind="text: $data, click: $parent.toggleTechnique,
+                data-bind="text: $data, 
+                    click: function(data, event) { $parent.toggleTechnique(data, event) },
+                    clickBubble: false,
                     css: { 'selected-tech': $parent.newProject.techniques.indexOf($data) >= 0 }">
             </button>
+            <!-- /ko -->
           </div>
 
           <!-- Free input for custom technique -->

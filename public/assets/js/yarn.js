@@ -17,7 +17,13 @@ function AppViewModel(initialData) {
     // Yarns
     self.yarns = ko.observableArray([]);
 
-    const availableProjects = Object.values(data.availableProjects || {});
+    let availableProjects = Object.values(data.availableProjects || {});
+    // decode HTML entities in project names
+    availableProjects.forEach(p => {
+      const txt = document.createElement('textarea');
+      txt.innerHTML = p.name;
+      p.name = txt.value;
+    });
     self.availableProjects = ko.observableArray(availableProjects || []);
 
     // Filters & search

@@ -42,9 +42,9 @@ class Model_Project extends \Orm\Model
       \Log::info('Fetching projects for user_id: ' . $user_id . ($project_id ? ', project_id: ' . $project_id : ''), __METHOD__);
       if ($project_id != null) {
         $query = static::query()->where('user_id', $user_id)
-                    ->where('id', $project_id)
-                    ->related('project_techniques')
-                    ->related('yarn');
+                        ->where('id', $project_id)
+                        ->related('project_techniques')
+                        ->related('yarn');
 
         $project = $query->get_one();
         if ($project) {
@@ -55,14 +55,16 @@ class Model_Project extends \Orm\Model
       }
       
       $query = static::query()->where('user_id', $user_id)
-                    ->related('project_techniques')
-                    ->related('yarn');
+                      ->order_by('name', 'asc')
+                      ->related('project_techniques')
+                      ->related('yarn');
 
-      $projects = $query->order_by('name')
-                ->get();
+      $projects = $query->get();
 
       return [
-        'projects'   => array_map([__CLASS__, 'format_project_for_display'], $projects),
+        'projects' => array_values(
+          array_map([__CLASS__, 'format_project_for_display'], $projects)
+        ),
       ];
 
     } catch (\Exception $e) {
