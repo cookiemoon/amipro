@@ -50,7 +50,7 @@ class Model_Project extends \Orm\Model
                 if ($project) {
                     return self::format_project_for_display($project, true);
                 } else {
-                    return ['project' => []];
+                    return null;
                 }
             }
             
@@ -159,6 +159,7 @@ class Model_Project extends \Orm\Model
             'yarn_name' => $yarn_name,
             'yarn_info' => $yarn_info,
             'colorwork_url' => $project->colorwork_url,
+            'row_counter' => $project->row_counter,
         ];
     }
 
@@ -311,7 +312,7 @@ class Model_Project extends \Orm\Model
             \Log::info('Attempting to delete project_id: ' . $project_id . ' for user_id: ' . $user_id, __METHOD__);
             $project = static::find($project_id);
             if (!$project || $project->user_id != $user_id) {
-                return ['success' => false, 'message' => 'Project not found or access denied'];
+                return ['success' => false, 'error' => 'not_found'];
             }
 
             $yarns = \Model_Yarn::query()->where('project_id', $project_id)->get();
@@ -327,7 +328,7 @@ class Model_Project extends \Orm\Model
             return ['success' => true];
         } catch (\Exception $e) {
             \Log::error('Error deleting project: ' . $e->getMessage());
-            return ['success' => false, 'message' => 'An error occurred while deleting the project'];
+            return ['success' => false, 'error' => 'server_error'];
         }
     }
 
@@ -339,7 +340,7 @@ class Model_Project extends \Orm\Model
             \Log::info('Attempting to edit project_id: ' . $project_id . ' for user_id: ' . $user_id, __METHOD__);
             $project = static::find($project_id);
             if (!$project || $project->user_id != $user_id) {
-                return ['success' => false, 'message' => 'Project not found or access denied'];
+                return ['success' => false, 'error' => 'not_found'];
             }
 
             $updatable_fields = [
@@ -413,7 +414,7 @@ class Model_Project extends \Orm\Model
             return ['success' => true];
         } catch (\Exception $e) {
             \Log::error('Error updating project: ' . $e->getMessage());
-            return ['success' => false, 'message' => 'An error occurred while updating the project'];
+            return ['success' => false, 'error' => 'server_error'];
         }
     }
 
@@ -423,7 +424,7 @@ class Model_Project extends \Orm\Model
             \Log::info('Updating row count for project_id: ' . $project_id . ' by user_id: ' . $user_id . ' to ' . $new_row_count, __METHOD__);
             $project = static::find($project_id);
             if (!$project || $project->user_id != $user_id) {
-                return ['success' => false, 'message' => 'Project not found or access denied'];
+                return ['success' => false, 'error' => 'unauthorized'];
             }
 
             $project->row_counter = $new_row_count;
@@ -431,13 +432,13 @@ class Model_Project extends \Orm\Model
             if (!$project->save()) {
                 $error = $project->validation()->error();
                 \Log::error('Project model failed to save during row count update. Validation Error: ' . print_r($error, true));
-                return ['success' => false, 'message' => 'Failed to update row count'];
+                return ['success' => false, 'error' => 'server_error'];
             }
 
             return ['success' => true];
         } catch (\Exception $e) {
             \Log::error('Error updating row count: ' . $e->getMessage());
-            return ['success' => false, 'message' => 'An error occurred while updating the row count'];
+            return ['success' => false, 'error' => 'server_error'];
         }
     }
 }

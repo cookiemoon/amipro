@@ -16,7 +16,7 @@
                        data-bind="value: password">
                 <label for="password" class="form-label">パスワード</label>
             </div>
-            <button type="submit" class="continue-button" data-bind="text: buttonText, disable: isLoading"></button>
+            <button type="submit" class="continue-button" data-bind="text: buttonText, disable: isLoading() || !isValid()"></button>
         </form>
 
         <div class="registration-link">

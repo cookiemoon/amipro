@@ -21,10 +21,6 @@ class Controller_Projects extends Controller_Hybrid
 
         $this->current_user = $user_id ? \Model_User::find($user_id) : null;
         if (!$this->current_user) \Response::redirect('auth/login');
-        if (!$this->is_restful()) {
-            $this->template->js = 'main.js';
-            $this->template->css = 'projects.css';
-        }
     }
 
     // プロジェクト管理ページの表示
@@ -41,6 +37,9 @@ class Controller_Projects extends Controller_Hybrid
             'techniques' => [],
         ];
 
+        $this->template->js = 'projects.js';
+        $this->template->css = 'projects.css';
+
         $data = [
             'available_filters' => $available_filters,
             'selected_filters' => $selected_filters,
@@ -49,7 +48,7 @@ class Controller_Projects extends Controller_Hybrid
             'search_query' => '',
         ];
 
-        return $this->response(View::forge('projects/index', $data));
+        $this->template->content = View::forge('projects/index', $data);
     }
 
     // 毛糸管理ページの表示
@@ -60,6 +59,9 @@ class Controller_Projects extends Controller_Hybrid
         $this->template->title = '毛糸 - あみぷろ';
         $available_filters = \Model_Yarn::get_available_filters();
         $projects_data = \Model_Project::get_user_projects($this->current_user->id);
+
+        $this->template->js = 'yarn.js';
+        $this->template->css = 'projects.css';
 
         $selected_filters = [
             'weight'      => [],
@@ -74,7 +76,7 @@ class Controller_Projects extends Controller_Hybrid
             'search_query' => '',
         ];
 
-        return $this->response(View::forge('projects/yarn', $data));
+        $this->template->content = View::forge('projects/yarn', $data);
     }
 
     // プロジェクトデータの取得
@@ -102,8 +104,12 @@ class Controller_Projects extends Controller_Hybrid
     // プロジェクトまたは毛糸の作成
     public function post_create()
     {   
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 405);
         }
 
         $item_type = \Input::post('item_type');
@@ -111,44 +117,60 @@ class Controller_Projects extends Controller_Hybrid
         if ($item_type === 'project') {
 
             $val = \Validation::forge();
-            $val->add('name', 'プロジェクト名')->add_rule('required');
-            $val->add('object_type', 'プロジェクトタイプ')->add_rule('required');
+            $val->add('name', 'プロジェクト名')->add_rule('required')->add_rule('max_length', 32);
+            $val->add('object_type', 'プロジェクトタイプ')->add_rule('required')->add_rule('max_length', 10);
+            $val->add('status', '進行状況')->add_rule('numeric_min', 0)->add_rule('numeric_max', 4);
+            $val->add('created_at', '開始日')->add_rule('required')->add_rule('valid_date');
+            $val->add('completed_at', '完成日')->add_rule('valid_date');
+            $val->add('progress', '進捗')->add_rule('numeric_min', 0)->add_rule('numeric_max', 100);
             if ($val->run()) {
                 $project_id = \Model_Project::create_project(
                     $this->current_user,
                     \Input::post()
                 );
                 if ($project_id) {
-                    return $this->response(['success' => true, 'project_id' => $project_id]);
+                    return $this->response(['success' => true, 'project_id' => $project_id, 'new_csrf_token' => \Security::fetch_token()]);
+                } else {
+                    return $this->response(['success' => false, 'error' => "エラーが発生しました。", 'new_csrf_token' => \Security::fetch_token()], 500);
                 }
             }
-            return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
+            return $this->response(['success' => false, 'error' => "情報を正しく入力してください。", 'new_csrf_token' => \Security::fetch_token()], 400);
 
         } elseif ($item_type === 'yarn') {
 
             $val = \Validation::forge();
-            $val->add('name', '毛糸名')->add_rule('required');
+            $val->add('name', '毛糸名')->add_rule('required')->add_rule('max_length', 32);
+            $val->add('color', '色')->add_rule('max_length', 255);
+            $val->add('brand', 'ブランド')->add_rule('max_length', 32);
+            $val->add('weight', '太さ')->add_rule('max_length', 255);
+            $val->add('fiber_desc', '繊維')->add_rule('max_length', 255);
             if ($val->run()) {
                 $yarn_id = \Model_Yarn::create_yarn(
                     $this->current_user->id,
                     \Input::post()
                 );
                 if ($yarn_id) {
-                    return $this->response(['success' => true, 'yarn_id' => $yarn_id]);
+                    return $this->response(['success' => true, 'yarn_id' => $yarn_id, 'new_csrf_token' => \Security::fetch_token()]);
+                } else {
+                    return $this->response(['success' => false, 'error' => "エラーが発生しました。", 'new_csrf_token' => \Security::fetch_token()], 500);
                 }
             }
-            return $this->response(['success' => false, 'errors' => $val->error_message()], 400);
+            return $this->response(['success' => false, 'error' => "情報を正しく入力してください。", 'new_csrf_token' => \Security::fetch_token()], 400);
 
         } else {
-            return $this->response(['success' => false, 'error' => 'Invalid item type'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
     }
 
     // プロジェクトまたは毛糸の削除
     public function post_delete()
     {
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 405);
         }
 
         $item_type = \Input::post('item_type');
@@ -161,21 +183,29 @@ class Controller_Projects extends Controller_Hybrid
         } elseif ($item_type === 'yarn') {
             $result = \Model_Yarn::delete_user_yarn($this->current_user->id, $item_id);
         } else {
-            return $this->response(['success' => false, 'error' => 'Invalid item type'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         if ($result['success']) {
             return $this->response(['success' => true]);
         } else {
-            return $this->response(['success' => false, 'error' => $result['message']], 400);
+            if ($result['error'] === 'not_found') {
+                return $this->response(['success' => false, 'error' => "情報が見つかりませんでした。", 'new_csrf_token' => \Security::fetch_token()], 404);
+            } else {
+                return $this->response(['success' => false, 'error' => "エラーが発生しました。", 'new_csrf_token' => \Security::fetch_token()], 500);
+            }
         }
     }
 
     // プロジェクトまたは毛糸の編集
     public function post_edit()
     {
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 405);
         }
 
         $item_type = \Input::post('item_type');
@@ -187,13 +217,17 @@ class Controller_Projects extends Controller_Hybrid
         } elseif ($item_type === 'yarn') {
             $result = \Model_Yarn::edit_user_yarn($this->current_user->id, $item_id, $data);
         } else {
-            return $this->response(['success' => false, 'error' => 'Invalid item type'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         if ($result['success']) {
-            return $this->response(['success' => true]);
+            return $this->response(['success' => true, 'new_csrf_token' => \Security::fetch_token()]);
         } else {
-            return $this->response(['success' => false, 'error' => $result['message']], 400);
+            if ($result['error'] === 'not_found') {
+                return $this->response(['success' => false, 'error' => "情報が見つかりませんでした。", 'new_csrf_token' => \Security::fetch_token()], 404);
+            } else {
+                return $this->response(['success' => false, 'error' => "エラーが発生しました。", 'new_csrf_token' => \Security::fetch_token()], 500);
+            }
         }
     }
 
@@ -209,7 +243,10 @@ class Controller_Projects extends Controller_Hybrid
         $data['project'] = $project;
         $data['title']   = $project['name'] . ' - あみぷろ';
 
-        return Response::forge(View::forge('projects/detail', $data));
+        $this->template->js = 'project-detail.js';
+        $this->template->css = 'detail.css';
+
+        $this->template->content = View::forge('projects/detail', $data);
     }
 
     // プロジェクト詳細データの取得
@@ -219,7 +256,7 @@ class Controller_Projects extends Controller_Hybrid
         $available_yarn = \Model_Yarn::get_user_yarn($this->current_user->id, true);
 
         if (!$project) {
-            return $this->response(['success' => false, 'error' => 'Not found']);
+            return $this->response(['success' => false, 'error' => '情報が見つかりませんでした。'], 404);
         }
 
         return $this->response([
@@ -238,10 +275,13 @@ class Controller_Projects extends Controller_Hybrid
             throw new HttpNotFoundException;
         }
 
+        $this->template->js = 'color.js';
+        $this->template->css = 'detail.css';
+
         $data['project'] = $project;
         $data['title']   = $project['name'] . ' - あみぷろ';
 
-        return Response::forge(View::forge('projects/color', $data));
+        $this->template->content = View::forge('projects/color', $data);
     }
 
     // カラーチャートデータの取得
@@ -251,11 +291,11 @@ class Controller_Projects extends Controller_Hybrid
         $chart = \Model_Customchart::get_chart($this->current_user->id, $id);
 
         if (!$project) {
-            return $this->response(['success' => false, 'error' => 'Not found']);
+            return $this->response(['success' => false, 'error' => '情報が見つかりませんでした。'], 404);
         }
 
         if (!$chart['success']) {
-            return $this->response(['success' => false, 'error' => 'Error retrieving chart data']);
+            return $this->response(['success' => false, 'error' => 'エラーが発生しました。'], 500);
         }
 
         $stitch_shape = \Cookie::get('stitch_shape', 'square');
@@ -273,31 +313,39 @@ class Controller_Projects extends Controller_Hybrid
     // カラーチャートページのオプション保存
     public function post_preference()
     {
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 405);
         }
 
         $default_page = \Input::post('default_page');
         if ($default_page && !in_array($default_page, ['screenshot', 'custom'])) {
-            return $this->response(['success' => false, 'error' => 'Invalid default page'], 400);
+            return $this->response(['success' => false, 'error' => '情報を正しく入力してください。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         $stitch_shape = \Input::post('stitch_shape');
         if ($stitch_shape && !in_array($stitch_shape, ['square', 'knit'])) {
-            return $this->response(['success' => false, 'error' => 'Invalid stitch shape'], 400);
+            return $this->response(['success' => false, 'error' => '情報を正しく入力してください。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         if ($default_page) \Cookie::set('default_page', $default_page, 60 * 60 * 24 * 30);
         if ($stitch_shape) \Cookie::set('stitch_shape', $stitch_shape, 60 * 60 * 24 * 30);
 
-        return $this->response(['success' => true]);
+        return $this->response(['success' => true, 'new_csrf_token' => \Security::fetch_token()]);
     }
 
     // カラーチャートデータの保存
     public function post_chart($id)
     {
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+        
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 405);
         }
 
         $width = (int) \Input::post('width', 20);
@@ -305,7 +353,7 @@ class Controller_Projects extends Controller_Hybrid
         $cells_data = json_decode(\Input::post('cells', '[]'), true);
 
         if ($width < 1 || $width > 50 || $height < 1 || $height > 50) {
-            return $this->response(['success' => false, 'error' => 'Width and height must be between 1 and 50'], 400);
+            return $this->response(['success' => false, 'error' => '情報を正しく入力してください。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         $cells_data = array_filter($cells_data, function($cell) use ($width, $height) {
@@ -329,31 +377,43 @@ class Controller_Projects extends Controller_Hybrid
         );
 
         if ($result["success"]) {
-            return $this->response(['success' => true]);
+            return $this->response(['success' => true, 'new_csrf_token' => \Security::fetch_token()]);
         } else {
-            return $this->response(['success' => false, 'message' => $result["message"]], 500);
+            if ($result['error'] === 'not_found') {
+                return $this->response(['success' => false, 'error' => "情報が見つかりませんでした。", 'new_csrf_token' => \Security::fetch_token()], 404);
+            } else {
+                return $this->response(['success' => false, 'error' => "エラーが発生しました。", 'new_csrf_token' => \Security::fetch_token()], 500);
+            }
         }
     }
 
     // 段数カウンターの更新
-    public function post_row_counter($id)
+    public function post_rows($id)
     {
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 405);
         }
 
         $row_count = \Input::post('row_count');
 
-        if ($row_count < 0 || $row_count > 999) {
-            return $this->response(['success' => false, 'error' => 'Invalid row counter value'], 400);
+        if ($row_count < 0 || $row_count > 999 || $row_count === null || $row_count === '' || !is_numeric($row_count)) {
+            return $this->response(['success' => false, 'error' => '情報を正しく入力してください。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         $result = \Model_Project::update_row_count($this->current_user->id, $id, $row_count);
 
         if ($result['success']) {
-            return $this->response(['success' => true, 'row_count' => $new_rows]);
+            return $this->response(['success' => true, 'new_csrf_token' => \Security::fetch_token()]);
         } else {
-            return $this->response(['success' => false, 'error' => $result['message']], 500);
+            if ($result['error'] === 'not_found') {
+                return $this->response(['success' => false, 'error' => "情報が見つかりませんでした。", 'new_csrf_token' => \Security::fetch_token()], 404);
+            } else {
+                return $this->response(['success' => false, 'error' => "エラーが発生しました。", 'new_csrf_token' => \Security::fetch_token()], 500);
+            }
         }
     }
 }

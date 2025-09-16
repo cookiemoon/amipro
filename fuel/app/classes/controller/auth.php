@@ -33,8 +33,12 @@ class Controller_Auth extends Controller_Hybrid
     // ログイン処理
     public function post_login()
     {
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         $user_id = \Model_User::authenticate(
@@ -43,9 +47,9 @@ class Controller_Auth extends Controller_Hybrid
         );
 
         if ($user_id) {
-            return $this->response(['success' => true]);
+            return $this->response(['success' => true, 'new_csrf_token' => \Security::fetch_token()]);
         } else {
-            return $this->response(['success' => false, 'error' => 'IDまたはパスワードが正しくありません。'], 401);
+            return $this->response(['success' => false, 'error' => 'IDまたはパスワードが正しくありません。', 'new_csrf_token' => \Security::fetch_token()], 401);
         }
     }
 
@@ -68,8 +72,12 @@ class Controller_Auth extends Controller_Hybrid
     // 新登録処理
     public function post_register()
     {
+        if (!\Security::check_token()) {
+            return $this->response(['success' => false, 'error' => '不正な操作が検出されました。'], 400);
+        }
+        
         if (!\Input::is_ajax()) {
-            return $this->response(['success' => false, 'error' => 'Invalid request'], 400);
+            return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 400);
         }
 
         $val = \Validation::forge();
@@ -86,13 +94,13 @@ class Controller_Auth extends Controller_Hybrid
 
             if ($user) {
                 \Session::set('user_id', $user->id);
-                return $this->response(['success' => true, 'user_id' => $user->id]);
+                return $this->response(['success' => true, 'user_id' => $user->id, 'new_csrf_token' => \Security::fetch_token()]);
             } else {
-                return $this->response(['success' => false, 'error' => 'このIDは既に使用されています。'], 409);
+                return $this->response(['success' => false, 'error' => 'このIDは既に使用されています。', 'new_csrf_token' => \Security::fetch_token()], 409);
             }
         }
         
-        return $this->response(['success' => false, 'error' => 'IDとパスワードを正しく入力してください。'], 400);
+        return $this->response(['success' => false, 'error' => 'IDとパスワードを正しく入力してください。', 'new_csrf_token' => \Security::fetch_token()], 400);
     }
 
     // --- ログアウト ---

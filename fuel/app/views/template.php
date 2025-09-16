@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($title) ? $title : 'あみぷろ'; ?></title>
-    <meta name="csrf-token-key" content="<?php echo \Config::get('security.csrf_token_key'); ?>">
     <meta name="csrf-token" content="<?php echo \Security::fetch_token(); ?>">
     
-    <?php // This dynamically loads the correct CSS file(s)
+    <?php
     if (isset($css)):
         echo \Asset::css($css);
     endif;
@@ -25,7 +24,7 @@
         <?php echo isset($content) ? $content : ''; ?>
     </div>
 
-    <?php // This dynamically loads the correct JavaScript file
+    <?php
     if (isset($js)):
         echo \Asset::js($js);
     endif;

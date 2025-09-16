@@ -1,20 +1,5 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title><?php echo Security::htmlentities($title); ?></title>
-<?php echo Asset::css('detail.css'); ?>
-</head>
-<body data-base-url="<?php echo \Uri::base(); ?>" 
-      data-project-id="<?php echo $project["id"]; ?>" 
-      class="project-detail-page">
-
+<meta name="project-id" content="<?php echo $project["id"]; ?>">
 <div class="container">
-    <div class="header">
-        <div class="header-content">
-            <h1>あみぷろ</h1>
-        </div>
-    </div>
 
     <div class="back-to-projects">
         <a href="<?php echo Uri::create('projects'); ?>"
@@ -89,9 +74,11 @@
                 <div class="elem-spacer"></div>
                 <p data-bind="text: project().status_text"></p>
                 <div class="elem-spacer"></div>
+                <!-- ko if: (project().status == 1 || project().status == 2 || project().status == 3) -->
                 <div class="progress-bar-container">
                     <div class="progress-bar" data-bind="style: { width: project().progress + '%' }"></div>
                 </div>
+                <!-- /ko -->
                 <!-- /ko -->
             </div>
 
@@ -116,10 +103,13 @@
             <!-- /ko -->
 
             <!-- Row counter -->
-            <div class="row-counter">
-                <button class="minus" data-bind="click: decrementRow">−</button>
-                <span class="rows" data-bind="text: rowCount"></span>
-                <button class="plus" data-bind="click: incrementRow">＋</button>
+            <div class="row-controls">
+                <div class="row-counter">
+                    <button class="minus" data-bind="click: decrementRow">−</button>
+                    <span class="rows" data-bind="text: rowCount"></span>
+                    <button class="plus" data-bind="click: incrementRow">＋</button>
+                </div>
+                <button class="controls-btn" data-bind="click: saveRow">保存</button>
             </div>
         </div>
     </div>
@@ -131,13 +121,13 @@
             <form>
                 <label>
                     プロジェクト名: <span class="required">*</span>
-                    <input type="text" data-bind="value: toEdit.name">
+                    <input type="text" data-bind="value: toEdit.name" maxlength="32">
                 </label>
 
                 <!-- Object Type -->
                 <label>
                     プロジェクトタイプ: <span class="required">*</span>
-                    <input type="text" data-bind="value: toEdit.objectType" placeholder="例: セーター">
+                    <input type="text" data-bind="value: toEdit.objectType" placeholder="例: セーター" maxlength="10">
                 </label>
 
                 <!-- Techniques -->
@@ -147,7 +137,8 @@
                     <!-- Free input for custom technique -->
                     <div class="custom-technique-input">
                         <input type="text" placeholder="カスタム技法を追加"
-                            data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }">
+                            data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }"
+                            maxlength="255">
                         <button type="button" data-bind="click: addCustomTechnique">追加</button>
                     </div>
 
@@ -269,12 +260,8 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
 <script>
 window.initialData = {
     availableYarns: <?php echo json_encode($available_yarn ?? [], JSON_UNESCAPED_UNICODE); ?>,
 };
 </script>
-<script src="<?php echo \Uri::base(); ?>assets/js/project-detail.js"></script>
-</body>
-</html>

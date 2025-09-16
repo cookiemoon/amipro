@@ -82,10 +82,10 @@ class Model_Customchart extends \Orm\Model
 
     // カラーチャートデータの保存
     // 作成、編集、削除も可能
-    public static function save_chart($user_id, $project_id, $height, $width, $cells_data) {
+    public static function save_chart($user_id, $project_id, $width, $height, $cells_data) {
         $ownership = \Model_Project::verify_ownership($user_id, $project_id);
         if (!$ownership) {
-            return ['success' => false, 'message' => 'Project not found or access denied'];
+            return ['success' => false, 'error' => 'not_found'];
         }
 
         \Log::info('Saving custom chart for project_id: ' . $project_id, __METHOD__);
@@ -123,7 +123,7 @@ class Model_Customchart extends \Orm\Model
         } catch (\Exception $e) {
             \DB::rollback_transaction();
             \Log::error('Save custom chart error: ' . $e->getMessage());
-            return ['success' => false, 'message' => 'Error saving custom chart'];
+            return ['success' => false, 'error' => 'server_error'];
         }
     }
 }

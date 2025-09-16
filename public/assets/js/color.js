@@ -1,6 +1,12 @@
 function ColorworkViewModel(projectId) {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    function updateToken(newToken) {
+        csrfToken = newToken;
+        document.querySelector('meta[name="csrf-token"]').setAttribute('content', newToken);
+    }
 
     // Project details
     self.project = ko.observable({});
@@ -25,7 +31,8 @@ function ColorworkViewModel(projectId) {
                     self.width(data.chart ? data.chart.size_x : 20);
                     self.height(data.chart ? data.chart.size_y : 20);
                     const cells = data.chart ? data.chart.cells : null;
-                    self.initChart(false, cells);
+                    self.initChart(cells);
+                    self.rowCount(data.project.row_counter || 0);
                 }
             })
             .catch(err => console.error("Error loading project:", err));
@@ -45,13 +52,19 @@ function ColorworkViewModel(projectId) {
     self.stitchShape.subscribe(val => {
         formData = new FormData();
         formData.append('stitch_shape', val);
+        formData.append('fuel_csrf_token', csrfToken);
         fetch(`${baseUrl}projects/preference/`, {
             method: 'POST',
             headers: { 
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: formData
-        })
+        }).then(r => r.json())
+        .then(data => {
+            if (data.new_csrf_token) {
+                updateToken(data.new_csrf_token);
+            }
+        });
     });
 
     self.modeToggle.subscribe(val => {
@@ -62,13 +75,19 @@ function ColorworkViewModel(projectId) {
         self.modeToggle(val === "custom");
         formData = new FormData();
         formData.append('default_page', val);
+        formData.append('fuel_csrf_token', csrfToken);
         fetch(`${baseUrl}projects/preference/`, {
             method: 'POST',
             headers: { 
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: formData
-        })
+        }).then(r => r.json())
+        .then(data => {
+            if (data.new_csrf_token) {
+                updateToken(data.new_csrf_token);
+            }
+        });
     });
 
     self.modeLabel = ko.computed(() => {
@@ -78,8 +97,8 @@ function ColorworkViewModel(projectId) {
     // --- Custom chart ---
     self.currentColor = ko.observable('#000000');
 
-    // Initialize or re-initialize chart
-    self.initChart = function(keep=true, cells=null) {
+    // Initialize chart
+    self.initChart = function(cell_chart=null) {
         let rows = [];
         if (self.width() > self.maxSize) self.width(self.maxSize);
         if (self.height() > self.maxSize) self.height(self.maxSize);
@@ -89,31 +108,46 @@ function ColorworkViewModel(projectId) {
         for (let y = 0; y < self.height(); y++) {
             let row = [];
             for (let x = 0; x < self.width(); x++) {
-                if (cells) {
-                    const cell = cells.find(c => c.x === x && c.y === y);
-                    row.push(cell ? cell.color : '');
+                if (cell_chart) {
+                    const cell = cell_chart.find(c => c.x === x && c.y === y);
+                    const color = cell ? cell.color : '';
+                    row.push(ko.observable(color));
                     continue;
                 }
-
-                if (keep && self.chart()[y] && self.chart()[y][x]) {
-                    row.push(self.chart()[y][x]);
-                    continue;
-                }
-                row.push('');
+                row.push(ko.observable('#FFFFFF'));
             }
             rows.push(row);
         }
         self.chart(rows);
     };
 
+    self.updateChart = function(keep=true) {
+        let newChart = [];
+        if (self.width() > self.maxSize) self.width(self.maxSize);
+        if (self.height() > self.maxSize) self.height(self.maxSize);
+        if (self.width() < 1) self.width(1);
+        if (self.height() < 1) self.height(1);
+
+        for (let y = 0; y < self.height(); y++) {
+            let row = [];
+            for (let x = 0; x < self.width(); x++) {
+                if (keep && self.chart()[y] && self.chart()[y][x]) {
+                    row.push(self.chart()[y][x]);
+                } else {
+                    row.push(ko.observable('#FFFFFF'));
+                }
+            }
+            newChart.push(row);
+        }
+        self.chart(newChart);
+    }
+
     self.paintPixel = function(rowIndex, colIndex) {
-        let rows = self.chart().map(r => r.slice());
-        rows[rowIndex][colIndex] = self.currentColor();
-        self.chart(rows);
+        self.chart()[rowIndex][colIndex](self.currentColor());
     };    
 
     self.clearChart = function() {
-        self.initChart(false);
+        self.updateChart(false);
     };
 
     self.saveChart = function() {
@@ -125,15 +159,19 @@ function ColorworkViewModel(projectId) {
         for (let y = 0; y < self.height(); y++) {
             for (let x = 0; x < self.width(); x++) {
                 if (!self.chart()[y][x]) continue;
+                if (self.chart()[y][x]() === '#FFFFFF') continue;
                 cells.push({
                     x: x,
                     y: y,
-                    color: self.chart()[y][x]
+                    color: self.chart()[y][x]()
                 });
             }
         }
 
+        console.log(cells);
+
         formData.append('cells', JSON.stringify(cells));
+        formData.append('fuel_csrf_token', csrfToken);
 
         fetch(`${baseUrl}projects/chart/${projectId}`, {
             method: 'POST',
@@ -141,7 +179,38 @@ function ColorworkViewModel(projectId) {
             body: formData
         }).then(r => r.json())
         .then(data => {
-            console.log("Saved!", data);
+            if (data.new_csrf_token) {
+                updateToken(data.new_csrf_token);
+            }
+            if (data.success) {
+                alert("チャート保存しました。");
+            } else {
+                alert("エラーが発生しました。");
+            }
+        });
+    };
+
+    self.saveRow = function() {
+        formData = new FormData();
+        formData.append('row_count', self.rowCount());
+        formData.append('fuel_csrf_token', csrfToken);
+
+        console.log(csrfToken);
+
+        fetch(`${baseUrl}projects/rows/${projectId}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        }).then(r => r.json())
+        .then(data => {
+            if (data.new_csrf_token) {
+                updateToken(data.new_csrf_token);
+            }
+            if (data.success) {
+                alert("段数カウンター保存しました。");
+            } else {
+                alert("エラーが発生しました。");
+            }
         });
     };
 
@@ -149,6 +218,6 @@ function ColorworkViewModel(projectId) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    const projectId = document.body.dataset.projectId;
+    const projectId = document.querySelector('meta[name="project-id"]').getAttribute('content');
     ko.applyBindings(new ColorworkViewModel(projectId));
 });

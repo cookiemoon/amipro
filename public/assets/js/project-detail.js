@@ -1,6 +1,14 @@
 function ProjectDetailViewModel(projectId) {
     const self = this;
     const baseUrl = document.body.dataset.baseUrl;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    function updateToken(newToken) {
+        csrfToken = newToken;
+        document.querySelector('meta[name="csrf-token"]').setAttribute('content', newToken);
+    }
+
+    console.log(`Project ID: ${projectId}, CSRF Token: ${csrfToken}`);
 
     // Project details
     self.project = ko.observable({});
@@ -29,6 +37,8 @@ function ProjectDetailViewModel(projectId) {
         formData.append('item_id', projectId);
         formData.append('item_type', 'project');
 
+        formData.append('fuel_csrf_token', csrfToken);
+
         fetch(`${baseUrl}projects/delete/`, {
             method: 'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -36,7 +46,11 @@ function ProjectDetailViewModel(projectId) {
         })
         .then(res => res.json())
         .then(data => {
+            if (data.new_csrf_token) {
+                updateToken(data.new_csrf_token);
+            }
             if (data.success) {
+                alert("プロジェクトを削除しました。");
                 window.location.href = `${baseUrl}projects`;
             }
         })
@@ -53,8 +67,8 @@ function ProjectDetailViewModel(projectId) {
                     const availableYarns = Object.values(data.available_yarn || {});
                     self.availableYarns(availableYarns);
                     self.availableYarnsBackup = availableYarns;
-                    console.log(availableYarns);
                     self.selectedYarns(data.project.yarn_info || []);
+                    self.rowCount(data.project.row_counter || 0);
                 }
             })
             .catch(err => console.error("Error loading project:", err));
@@ -145,12 +159,20 @@ function ProjectDetailViewModel(projectId) {
     }
 
     self.submitToEdit = () => {
-        if (self.toEdit.status() === 3) {
+        if (self.toEdit.status() === 3 || self.toEdit.progress() > 100) {
             self.toEdit.progress(100);
         }
 
-        if (self.toEdit.progress() === 0) {
+        if (self.toEdit.progress() === 0 || self.toEdit.progress() < 0) {
             self.toEdit.status(0);
+        }
+
+        if (self.toEdit.name().length > 32) {
+            self.toEdit.name(self.toEdit.name().substring(0, 32));
+        }
+
+        if (self.toEdit.objectType().length > 10) {
+            self.toEdit.objectType(self.toEdit.objectType().substring(0, 10));
         }
 
         let formData = new FormData();
@@ -169,6 +191,8 @@ function ProjectDetailViewModel(projectId) {
         formData.append('screenshot_url', self.toEdit.screenshotUrl());
         formData.append('colorwork_url', self.toEdit.colorworkUrl());
 
+        formData.append('fuel_csrf_token', csrfToken);
+
         fetch(`${baseUrl}projects/edit/`, {
             method: 'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -176,12 +200,16 @@ function ProjectDetailViewModel(projectId) {
         })
         .then(res => res.json())
         .then(data => {
+            if (data.new_csrf_token) {
+                updateToken(data.new_csrf_token);
+            }
             if (data.success) {
+                alert("プロジェクトを更新しました。");
                 self.availableYarnsBackup = self.availableYarns();
                 self.showModal(false);
                 self.loadProject();
             } else {
-                alert("プロジェクトの更新に失敗しました。");
+                alert("エラーが発生しました。");
             }
         })
         .catch(err => console.error("Error editing project:", err));
@@ -221,9 +249,31 @@ function ProjectDetailViewModel(projectId) {
         const url = self.toEdit.colorworkUrl();
         return url ? url : null;
     });
+
+    self.saveRow = function() {
+        formData = new FormData();
+        formData.append('row_count', self.rowCount());
+        formData.append('fuel_csrf_token', csrfToken);
+
+        fetch(`${baseUrl}projects/rows/${projectId}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        }).then(r => r.json())
+        .then(data => {
+            if (data.new_csrf_token) {
+                updateToken(data.new_csrf_token);
+            }
+            if (data.success) {
+                alert("段数カウンター保存しました。");
+            } else {
+                alert("エラーが発生しました。");
+            }
+        });
+    };
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const projectId = document.body.dataset.projectId;
+    const projectId = document.querySelector('meta[name="project-id"]').getAttribute('content');
     ko.applyBindings(new ProjectDetailViewModel(projectId));
 });

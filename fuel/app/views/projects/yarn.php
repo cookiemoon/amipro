@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?php echo isset($title) ? Security::htmlentities($title) : '毛糸 - あみぷろ'; ?></title>
-<?php echo Asset::css('projects.css'); ?>
-</head>
-<body data-base-url="<?php echo \Uri::base(); ?>" class="projects-page">
-
 <div class="container">
 
     <!-- Header -->
@@ -141,12 +131,12 @@
             <form>
                 <label>
                     毛糸名: <span class="required">*</span>
-                    <input type="text" data-bind="value: newYarn.name">
+                    <input type="text" data-bind="value: newYarn.name" maxlength="32">
                 </label>
 
                 <label>
                     ブランド:
-                    <input type="text" data-bind="value: newYarn.brand">
+                    <input type="text" data-bind="value: newYarn.brand" maxlength="32">
                 </label>
 
                 <!-- Project Selection -->
@@ -175,7 +165,7 @@
 
                 <label>
                     色:
-                    <input type="text" data-bind="value: newYarn.color">
+                    <input type="text" data-bind="value: newYarn.color" maxlength="255">
                 </label>
 
                 <!-- Yarn Weight Selection -->
@@ -197,7 +187,7 @@
                             <span data-bind="text: name"></span>
                         </label>
                     </div>
-                    <input type="text" data-bind="value: newYarn.fiberDesc" placeholder="例: コットン30%、 ウール70%">
+                    <input type="text" data-bind="value: newYarn.fiberDesc" placeholder="例: コットン30%、 ウール70%" maxlength="255">
                 </label>
 
                 <div class="modal-actions">
@@ -212,8 +202,6 @@
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
-<!-- Pass PHP → KO -->
 <script>
 window.initialData = {
     filters: <?php echo json_encode($available_filters ?? [], JSON_UNESCAPED_UNICODE); ?>,
@@ -222,8 +210,3 @@ window.initialData = {
     searchQuery: "<?php echo Security::htmlentities($search_query ?? ''); ?>"
 };
 </script>
-
-<script src="<?php echo \Uri::base(); ?>assets/js/yarn.js"></script>
-
-</body>
-</html>

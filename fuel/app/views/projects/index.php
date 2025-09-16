@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?php echo isset($title) ? Security::htmlentities($title) : 'プロジェクト - あみぷろ'; ?></title>
-<?php echo Asset::css('projects.css'); ?>
-</head>
-<body data-base-url="<?php echo \Uri::base(); ?>" class="projects-page">
-
 <div class="container">
 
     <!-- Header -->
@@ -132,13 +122,13 @@
             <form>
                 <label>
                     プロジェクト名: <span class="required">*</span>
-                    <input type="text" data-bind="value: newProject.name">
+                    <input type="text" data-bind="value: newProject.name" maxlength="32">
                 </label>
 
                 <!-- Object Type -->
                 <label>
                     プロジェクトタイプ: <span class="required">*</span>
-                    <input type="text" data-bind="value: newProject.objectType" placeholder="例: セーター">
+                    <input type="text" data-bind="value: newProject.objectType" placeholder="例: セーター" maxlength="10">
                 </label>
 
                 <!-- Techniques -->
@@ -154,7 +144,8 @@
                     <!-- Free input for custom technique -->
                     <div class="custom-technique-input">
                         <input type="text" placeholder="カスタム技法を追加"
-                            data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }">
+                            data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }"
+                            maxlenght="255">
                         <button type="button" data-bind="click: addCustomTechnique">追加</button>
                     </div>
 
@@ -277,8 +268,6 @@
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
-<!-- Pass PHP → KO -->
 <script>
 window.initialData = {
     filters: <?php echo json_encode($available_filters ?? [], JSON_UNESCAPED_UNICODE); ?>,
@@ -287,8 +276,3 @@ window.initialData = {
     searchQuery: "<?php echo Security::htmlentities($search_query ?? ''); ?>"
 };
 </script>
-
-<script src="<?php echo \Uri::base(); ?>assets/js/projects.js"></script>
-
-</body>
-</html>

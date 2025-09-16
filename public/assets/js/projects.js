@@ -7,6 +7,12 @@ function AppViewModel(initialData) {
 
     function ProjectListViewModel(data) {
         const self = this;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function updateToken(newToken) {
+            csrfToken = newToken;
+            document.querySelector('meta[name="csrf-token"]').setAttribute('content', newToken);
+        }
 
         // Projects
         self.projects = ko.observableArray([]);
@@ -154,12 +160,20 @@ function AppViewModel(initialData) {
     
         // Form submission
         self.submitNewProject = function() {
-            if (self.newProject.status() === 3) {
+            if (self.newProject.status() === 3 || self.newProject.progress() > 100) {
                 self.newProject.progress(100);
             }
 
-            if (self.newProject.progress() === 0) {
+            if (self.newProject.progress() === 0 || self.newProject.progress() < 0) {
                 self.newProject.status(0);
+            }
+
+            if (self.newProject.name().length > 32) {
+                self.newProject.name(self.newProject.name().substring(0, 32));
+            }
+
+            if (self.newProject.objectType().length > 10) {
+                self.newProject.objectType(self.newProject.objectType().substring(0, 10));
             }
 
             const today = new Date().toISOString().split('T')[0];
@@ -179,6 +193,8 @@ function AppViewModel(initialData) {
             formData.append('screenshot_url', self.newProject.screenshotUrl().trim());
             formData.append('colorwork_url', self.newProject.colorworkUrl().trim());
 
+            formData.append('fuel_csrf_token', csrfToken);
+
             fetch(`${baseUrl}projects/create`, {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -186,7 +202,11 @@ function AppViewModel(initialData) {
             })
             .then(response => response.json())
             .then(data => {
+                if (data.new_csrf_token) {
+                    updateToken(data.new_csrf_token);
+                }
                 if (data.success) {
+                    alert("プロジェクトを作成しました。");
                     self.hideModal();
                     window.location.href = `${baseUrl}projects/detail/${data.project_id}`;
                 } else {

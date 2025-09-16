@@ -7,6 +7,12 @@ function AppViewModel(initialData) {
 
     function YarnListViewModel(data) {
         const self = this;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function updateToken(newToken) {
+            csrfToken = newToken;
+            document.querySelector('meta[name="csrf-token"]').setAttribute('content', newToken);
+        }
 
         // Yarns
         self.yarns = ko.observableArray([]);
@@ -108,6 +114,14 @@ function AppViewModel(initialData) {
 
             const url = isEdit ? `${baseUrl}projects/edit` : `${baseUrl}projects/create`;
 
+            if (self.newYarn.name().length > 32) {
+                self.newYarn.name(self.newYarn.name().substring(0, 32));
+            }
+
+            if (self.newYarn.brand().length > 32) {
+                self.newYarn.brand(self.newYarn.brand().substring(0, 32));
+            }
+
             formData.append('name', self.newYarn.name().trim());
             formData.append('brand', self.newYarn.brand().trim());
             formData.append('project', self.newYarn.project());
@@ -119,6 +133,8 @@ function AppViewModel(initialData) {
             formData.append('fiber_desc', self.newYarn.fiberDesc().trim());
             formData.append('project_id', self.newYarn.project());
 
+            formData.append('fuel_csrf_token', csrfToken);
+
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -126,15 +142,25 @@ function AppViewModel(initialData) {
             })
             .then(response => response.json())
             .then(data => {
+                if (data.new_csrf_token) {
+                    updateToken(data.new_csrf_token);
+                }
                 if (data.success) {
+                    if (isEdit) {
+                        alert("毛糸を更新しました。");
+                    } else {
+                        alert("毛糸を追加しました。");
+                    }
                     self.hideModal();
                     self.loadYarns();
                 } else {
+                    alert("保存に失敗しました。");
                     console.error("Yarn error:",data.error);
                 }
             })
             .catch(error => {
-                console.error('Yarn error 2:', error);
+                alert("エラーが発生しました。");
+                console.error('Yarn error:', error);
             })
         };
     
@@ -188,6 +214,8 @@ function AppViewModel(initialData) {
             formData = new FormData();
             formData.append('item_id', yarn.id);
             formData.append('item_type', 'yarn');
+
+            formData.append('fuel_csrf_token', csrfToken);
         
             fetch(`${baseUrl}projects/delete`, {
                 method: 'POST',
@@ -198,7 +226,11 @@ function AppViewModel(initialData) {
             })
             .then(response => response.json())
             .then(data => {
+                if (data.new_csrf_token) {
+                    updateToken(data.new_csrf_token);
+                }
                 if (data.success) {
+                    alert("毛糸を削除しました。");
                     self.yarns.remove(yarn);
                 } else {
                     alert("削除に失敗しました。");

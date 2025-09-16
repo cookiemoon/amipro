@@ -1,20 +1,5 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title><?php echo Security::htmlentities($title); ?></title>
-<?php echo Asset::css('detail.css'); ?>
-</head>
-<body data-base-url="<?php echo \Uri::base(); ?>" 
-      data-project-id="<?php echo $project["id"]; ?>" 
-      class="project-color-page">
-
+<meta name="project-id" content="<?php echo $project["id"]; ?>">
 <div class="container">
-    <div class="header">
-        <div class="header-content">
-            <h1>あみぷろ</h1>
-        </div>
-    </div>
 
     <div class="back-to-projects">
         <a href="<?php echo Uri::create('projects'); ?>"
@@ -56,10 +41,10 @@
                 <div class="controls">
                     <label>幅: <input type="number" min="1" max="50" data-bind="value: width, 
                                                                             valueUpdate: 'afterkeydown',
-                                                                            event: { change: initChart }"></label>
+                                                                            event: { change: updateChart }"></label>
                     <label>高さ: <input type="number" min="1" max="50" data-bind="value: height,
                                                                             valueUpdate: 'afterkeydown',
-                                                                            event: { change: initChart }"></label>
+                                                                            event: { change: updateChart }"></label>
 
                     <input type="color" class="color-input" data-bind="value: currentColor">
 
@@ -83,7 +68,7 @@
                         <span class="pixel-bg">
                             <div class="pixel"
                                 data-bind="
-                                    style: { backgroundColor: $data || '#fff' },
+                                    style: { backgroundColor: $data || '#ffffff' },
                                     css: $root.stitchShape(),
                                     click: () => $parents[1].paintPixel($parentContext.$index(), $index())">
                             </div>
@@ -99,15 +84,13 @@
             </div>
         </div>
 
-        <div class="row-counter">
-                <button class="minus" data-bind="click: decrementRow">−</button>
-                <span class="rows" data-bind="text: rowCount"></span>
-                <button class="plus" data-bind="click: incrementRow">＋</button>
+        <div class="row-controls">
+            <div class="row-counter">
+                    <button class="minus" data-bind="click: decrementRow">−</button>
+                    <span class="rows" data-bind="text: rowCount"></span>
+                    <button class="plus" data-bind="click: incrementRow">＋</button>
+            </div>
+            <button class="controls-btn" data-bind="click: saveRow">保存</button>
         </div>
     </div>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js"></script>
-<script src="<?php echo \Uri::base(); ?>assets/js/color.js"></script>
-</body>
-</html>

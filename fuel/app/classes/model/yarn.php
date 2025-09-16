@@ -141,11 +141,11 @@ class Model_Yarn extends \Orm\Model
                 $yarn->delete();
                 return ['success' => true];
             } else {
-                return ['success' => false, 'message' => '指定された毛糸が見つかりません。'];
+                return ['success' => false, 'error' => 'not_found'];
             }
         } catch (\Exception $e) {
             \Log::error('Delete user yarn error: ' . $e->getMessage());
-            return ['success' => false, 'message' => '毛糸の削除中にエラーが発生しました。'];
+            return ['success' => false, 'error' => 'server_error'];
         }
     }
 
@@ -167,13 +167,15 @@ class Model_Yarn extends \Orm\Model
         } else {
             $project_id = null;
         }
+
+        $weight = in_array($data['weight'], array_keys(static::get_yarn_weights())) ? $data['weight'] : null;
         
         $yarn = static::forge([
             'user_id' => $user_id,
             'name' => $data['name'],
             'brand' => $data['brand'],
             'color' => $data['color'],
-            'weight' => $data['weight'],
+            'weight' => $weight,
             'fiber_animal' => $data['fiber_animal'] == "true" ? 1 : 0,
             'fiber_plant' => $data['fiber_plant'] == "true" ? 1 : 0,
             'fiber_synthetic' => $data['fiber_synthetic'] == "true" ? 1 : 0,
@@ -200,7 +202,7 @@ class Model_Yarn extends \Orm\Model
                                   ->get_one();
             
             if (!$yarn) {
-                return ['success' => false, 'message' => '指定された毛糸が見つかりません。'];
+                return ['success' => false, 'error' => 'not_found'];
             }
 
             if (isset($data['project_id']) && $data['project_id'] != "null") {
@@ -231,11 +233,11 @@ class Model_Yarn extends \Orm\Model
                 return ['success' => true];
             } else {
                 \Log::error('Failed to update yarn for user_id ' . $user_id . ' and yarn_id ' . $yarn_id);
-                return ['success' => false, 'message' => '毛糸の更新に失敗しました。'];
+                return ['success' => false, 'error' => 'server_error'];
             }
         } catch (\Exception $e) {
             \Log::error('Edit user yarn error: ' . $e->getMessage());
-            return ['success' => false, 'message' => '毛糸の更新中にエラーが発生しました。'];
+            return ['success' => false, 'error' => 'server_error'];
         }
     }
 }

@@ -5,19 +5,33 @@ function AppViewModel() {
     // --- Login ViewModel ---
     self.login = new function() {
         const loginSelf = this;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        function updateToken(newToken) {
+            csrfToken = newToken;
+            document.querySelector('meta[name="csrf-token"]').setAttribute('content', newToken);
+        }
+
         loginSelf.username = ko.observable('');
         loginSelf.password = ko.observable('');
         loginSelf.serverErrorMessage = ko.observable(null);
         loginSelf.isLoading = ko.observable(false);
+        loginSelf.isValid = ko.computed(() => {
+            return loginSelf.username().length > 0 &&
+                   loginSelf.password().length > 0
+        });
         loginSelf.buttonText = ko.computed(() => loginSelf.isLoading() ? '...' : '続く');
 
         loginSelf.loginUser = function() {
+            if (!loginSelf.isValid()) return;
+
             loginSelf.isLoading(true);
             loginSelf.serverErrorMessage(null);
             
             const formData = new FormData();
             formData.append('username', loginSelf.username());
             formData.append('password', loginSelf.password());
+            formData.append('fuel_csrf_token', csrfToken);
 
             fetch(`${baseUrl}login`, {
                 method: 'POST',
@@ -26,6 +40,9 @@ function AppViewModel() {
             })
             .then(response => response.json())
             .then(data => {
+                if (data.new_csrf_token) {
+                    updateToken(data.new_csrf_token);
+                }
                 if (data.success) {
                     window.location.href = `${baseUrl}projects`;
                 } else {
@@ -45,6 +62,13 @@ function AppViewModel() {
     // --- Register ViewModel ---
     self.register = new function() {
         const regSelf = this;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function updateToken(newToken) {
+            csrfToken = newToken;
+            document.querySelector('meta[name="csrf-token"]').setAttribute('content', newToken);
+        }
+
         regSelf.username = ko.observable('');
         regSelf.password = ko.observable('');
         regSelf.passwordConfirm = ko.observable('');
@@ -97,6 +121,7 @@ function AppViewModel() {
             formData.append('username', regSelf.username());
             formData.append('password', regSelf.password());
             formData.append('password_confirm', regSelf.passwordConfirm());
+            formData.append('fuel_csrf_token', csrfToken);
 
             fetch(`${baseUrl}register`, {
                 method: 'POST',
@@ -105,7 +130,11 @@ function AppViewModel() {
             })
             .then(response => response.json())
             .then(data => {
+                if (data.new_csrf_token) {
+                    updateToken(data.new_csrf_token);
+                }
                 if (data.success) {
+                    alert("アカウントが正常に作成されました。");
                     window.location.href = `${baseUrl}projects`;
                 } else {
                     regSelf.serverErrorMessage(data.error || '登録に失敗しました。');
