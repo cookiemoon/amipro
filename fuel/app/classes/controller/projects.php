@@ -187,7 +187,7 @@ class Controller_Projects extends Controller_Hybrid
     }
 
     if ($result['success']) {
-      return $this->response(['success' => true]);
+      return $this->response(['success' => true, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()]);
     } else {
       if ($result['error'] === 'not_found') {
         return $this->response(['success' => false, 'error' => "情報が見つかりませんでした。", 'new_csrf_token' => \Security::fetch_token()], 404);
@@ -213,8 +213,27 @@ class Controller_Projects extends Controller_Hybrid
     $data = \Input::post();
 
     if ($item_type === 'project') {
+      $val = \Validation::forge();
+      $val->add('name', 'プロジェクト名')->add_rule('required')->add_rule('max_length', 32);
+      $val->add('object_type', 'プロジェクトタイプ')->add_rule('required')->add_rule('max_length', 10);
+      $val->add('status', '進行状況')->add_rule('numeric_min', 0)->add_rule('numeric_max', 4);
+      $val->add('created_at', '開始日')->add_rule('required')->add_rule('valid_date');
+      $val->add('completed_at', '完成日')->add_rule('valid_date');
+      $val->add('progress', '進捗')->add_rule('numeric_min', 0)->add_rule('numeric_max', 100);
+      if (!$val->run()) {
+        return $this->response(['success' => false, 'error' => "情報を正しく入力してください。", 'new_csrf_token' => \Security::fetch_token()], 400);
+      }
       $result = \Model_Project::edit_user_project($this->current_user->id, $item_id, $data);
     } elseif ($item_type === 'yarn') {
+      $val = \Validation::forge();
+      $val->add('name', '毛糸名')->add_rule('required')->add_rule('max_length', 32);
+      $val->add('color', '色')->add_rule('max_length', 255);
+      $val->add('brand', 'ブランド')->add_rule('max_length', 32);
+      $val->add('weight', '太さ')->add_rule('max_length', 255);
+      $val->add('fiber_desc', '繊維')->add_rule('max_length', 255);
+      if (!$val->run()) {
+        return $this->response(['success' => false, 'error' => "情報を正しく入力してください。", 'new_csrf_token' => \Security::fetch_token()], 400);
+      }
       $result = \Model_Yarn::edit_user_yarn($this->current_user->id, $item_id, $data);
     } else {
       return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 400);

@@ -41,6 +41,13 @@ class Controller_Auth extends Controller_Hybrid
       return $this->response(['success' => false, 'error' => '操作は実行できません。', 'new_csrf_token' => \Security::fetch_token()], 400);
     }
 
+    $val = \Validation::forge();
+    $val->add_field('username', 'ID', 'required');
+    $val->add_field('password', 'パスワード', 'required');
+    if (!$val->run()) {
+      return $this->response(['success' => false, 'error' => 'IDとパスワードを正しく入力してください。', 'new_csrf_token' => \Security::fetch_token()], 400);
+    }
+
     $user_id = \Model_User::authenticate(
       \Input::post('username'),
       \Input::post('password')

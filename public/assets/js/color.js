@@ -168,8 +168,6 @@ function ColorworkViewModel(projectId) {
       }
     }
 
-    console.log(cells);
-
     formData.append('cells', JSON.stringify(cells));
     formData.append('fuel_csrf_token', csrfToken);
 
@@ -194,8 +192,6 @@ function ColorworkViewModel(projectId) {
     formData = new FormData();
     formData.append('row_count', self.rowCount());
     formData.append('fuel_csrf_token', csrfToken);
-
-    console.log(csrfToken);
 
     fetch(`${baseUrl}projects/rows/${projectId}`, {
       method: 'POST',

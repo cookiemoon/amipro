@@ -138,8 +138,6 @@ function AppViewModel(initialData) {
     self.suggestedTechniques(mergedTechniques);
 
     self.toggleTechnique = function(tech, event) {
-      console.log("Toggling technique:", tech);
-      console.log("Event:", event);
       if(!tech) return;
       event.stopPropagation();
       if (!self.newProject.techniques().includes(tech)) {
@@ -272,7 +270,7 @@ function AppViewModel(initialData) {
     
         // Techniques filter
         const matchesTechnique = self.selectedTechniques().length === 0 ||
-          (p.technique_names || []).some(t => self.selectedTechniques().includes(t));
+          (self.selectedTechniques().every(t => (p.technique_names || []).includes(t)));
     
         return matchesSearch && matchesType && matchesTechnique;
       });

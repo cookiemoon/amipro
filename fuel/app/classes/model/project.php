@@ -360,6 +360,8 @@ class Model_Project extends \Orm\Model
       foreach ($updatable_fields as $field) {
         if (isset($data[$field]) && $data[$field] !== null && $data[$field] !== '') {
           $project->$field = $data[$field];
+        } else if (array_key_exists($field, $data) && ($data[$field] === null || $data[$field] === '')) {
+          $project->$field = null;
         }
       }
 

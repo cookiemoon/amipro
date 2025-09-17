@@ -205,7 +205,7 @@ function AppViewModel(initialData) {
     
         // Fibers filter
         const matchesFiber = self.selectedFibers().length === 0 ||
-          (p.fiber_types || []).some(t => self.selectedFibers().includes(t));
+          (self.selectedFibers().every(t => (p.fiber_types || []).includes(t)));
     
         return matchesSearch && matchesWeight && matchesFiber;
       });

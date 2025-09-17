@@ -8,8 +8,6 @@ function ProjectDetailViewModel(projectId) {
     document.querySelector('meta[name="csrf-token"]').setAttribute('content', newToken);
   }
 
-  console.log(`Project ID: ${projectId}, CSRF Token: ${csrfToken}`);
-
   // Project details
   self.project = ko.observable({});
   self.rowCount = ko.observable(0);
@@ -175,6 +173,8 @@ function ProjectDetailViewModel(projectId) {
       self.toEdit.objectType(self.toEdit.objectType().substring(0, 10));
     }
 
+    const today = new Date().toISOString().split('T')[0];
+
     let formData = new FormData();
     formData.append('item_id', projectId);
     formData.append('item_type', 'project');
@@ -185,7 +185,7 @@ function ProjectDetailViewModel(projectId) {
     formData.append('yarn', JSON.stringify(self.selectedYarns()));
     formData.append('status', self.toEdit.status());
     formData.append('progress', self.toEdit.progress());
-    formData.append('created_at', self.toEdit.startDate() || '');
+    formData.append('created_at', self.toEdit.startDate() || today);
     formData.append('completed_at', self.toEdit.completionDate() || '');
     formData.append('memo', self.toEdit.memo());
     formData.append('screenshot_url', self.toEdit.screenshotUrl());
@@ -235,7 +235,6 @@ function ProjectDetailViewModel(projectId) {
   };
   
   self.removeTechnique = function(tech) {
-    console.log(tech);
     self.toEdit.techniques.remove(tech);
   };
 
