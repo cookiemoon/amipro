@@ -181,12 +181,14 @@ body {
 }
 
 .row-controls {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   right: 20px;
   display: flex;
   align-items: center;
   flex-direction: column;
+  background: #fff;
+  border-radius: 5px;
 }
 
 .row-counter {
@@ -196,7 +198,6 @@ body {
   padding: 10px;
   text-align: right;
   width: fit-content;
-  background: #ffffff;
 }
 
 .row-counter button {
@@ -728,7 +729,7 @@ list-style-type: none;
 }
 
 .colorwork-image {
-  max-width: 100%;
+  max-width: 50%;
   display: block;
   margin: 0 auto;
 }

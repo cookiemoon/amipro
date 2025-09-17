@@ -21,7 +21,7 @@ git clone https://github.com/username/amipro.git
 cd amipro
 ```
 
-2. Docker コンテナをビルド・起動し、初期マイグレーション・シードを実行:
+2. Docker コンテナをビルド・起動し、初期マイグレーションを実行:
 
 ```bash
 docker compose up -d --build
