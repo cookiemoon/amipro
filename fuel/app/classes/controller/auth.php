@@ -26,7 +26,7 @@ class Controller_Auth extends Controller_Hybrid
       \Response::redirect('dashboard');
     }
     
-    $this->template->title = 'ログイン - あみぷろ';
+    $this->template->title = 'Login - amipro';
     $this->template->content = \View::forge('auth/login');
   }
 
@@ -72,7 +72,7 @@ class Controller_Auth extends Controller_Hybrid
       \Response::redirect('dashboard');
     }
 
-    $this->template->title = '新規登録 - あみぷろ';
+    $this->template->title = 'Registration - amipro';
     $this->template->content = \View::forge('auth/register');
   }
 

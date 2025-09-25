@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($title) ? $title : 'あみぷろ'; ?></title>
+    <title><?php echo isset($title) ? $title : 'amipro'; ?></title>
     <meta name="csrf-token" content="<?php echo \Security::fetch_token(); ?>">
     <link rel="stylesheet" href="<?php echo \Uri::base(); ?>assets/css/color_vars.css">
     <?php
@@ -18,7 +18,7 @@
     
     <div class="container">
         <div class="header">
-            <h1>あみぷろ</h1>
+            <h1>amipro</h1>
         </div>
         
         <?php echo isset($content) ? $content : ''; ?>

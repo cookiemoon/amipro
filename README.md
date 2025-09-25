@@ -1,27 +1,22 @@
-# あみぷろ (Amipro)
+# Amipro
 
-あみぷろは、FuelPHP と Knockout.js を用いており、Docker でローカル環境を構築可能です。
+Amipro uses FuelPHP and Knockout.js, and can be set up with a local environment in Docker.
 
 ---
 
-## 必要環境
+## Requirements
 
 - Docker & Docker Compose
 - Git
-- ブラウザ（Chrome / Firefox 推奨）
+- Browser（Chrome / Firefox recommended）
 
 ---
 
-## Docker でのセットアップ
+## Docker setup
 
-1. リポジトリをクローン:
+1. Download the repository, unzip the folder, and move your terminal window to the amipro directory.
 
-```bash
-git clone https://github.com/username/amipro.git
-cd amipro
-```
-
-2. Docker コンテナをビルド・起動し、初期マイグレーションを実行:
+2. Build the Docker container and images and perform the migrations:
 
 ```bash
 docker compose up -d --build
@@ -29,29 +24,29 @@ docker compose exec app php oil refine migrate
 docker compose exec app php oil refine session
 ```
 
-- その次のコマンドで、createを入力してください。
+- When prompted for the last command, please select "create".
 
 ---
 
-## データベース
+## Database
 
-- MySQL を使用
-- FuelPHP の `db.php` で接続確認可能
-- データベースの内容を確認したい場合:
+- Uses MySQL.
+- Settings can be changed in FuelPHP's `db.php` file.
+- When you want to see the contents of the database:
 
 ```bash
 docker compose exec db mysql -u amipro_user -p amipro_db
 ```
 
-- パスワードはamipro_passとなります。
+- The password is amipro_pass
 
 ---
 
-## ローカルでのアクセス
+## Local access
 
-Docker 起動後、ブラウザでアクセス:
+After setting up Docker, access through your browser:
 ```http://localhost:8080```
 
-- ポートはdocker-compose.ymlファイルから変更できます。
+- The port can be configured in the docker-compose.yml file.
 
 ---

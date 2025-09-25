@@ -28,7 +28,7 @@ class Controller_Projects extends Controller_Hybrid
   {
     $this->format = 'html';
     
-    $this->template->title = 'プロジェクト - あみぷろ';
+    $this->template->title = 'Project - amipro';
     $available_filters = \Model_Project::get_available_filters($this->current_user->id);
     $available_yarn = \Model_Yarn::get_user_yarn($this->current_user->id, true);
 
@@ -56,7 +56,7 @@ class Controller_Projects extends Controller_Hybrid
   {
     $this->format = 'html';
     
-    $this->template->title = '毛糸 - あみぷろ';
+    $this->template->title = 'Yarn - amipro';
     $available_filters = \Model_Yarn::get_available_filters();
     $projects_data = \Model_Project::get_user_projects($this->current_user->id);
 
@@ -260,7 +260,7 @@ class Controller_Projects extends Controller_Hybrid
     }
 
     $data['project'] = $project;
-    $data['title']   = $project['name'] . ' - あみぷろ';
+    $data['title']   = $project['name'] . ' - amipro';
 
     $this->template->js = 'project-detail.js';
     $this->template->css = 'detail.css';
@@ -298,7 +298,7 @@ class Controller_Projects extends Controller_Hybrid
     $this->template->css = 'detail.css';
 
     $data['project'] = $project;
-    $data['title']   = $project['name'] . ' - あみぷろ';
+    $data['title']   = $project['name'] . ' - amipro';
 
     $this->template->content = View::forge('projects/color', $data);
   }
