@@ -45,12 +45,12 @@ function AppViewModel() {
         if (data.success) {
           window.location.href = `${baseUrl}projects`;
         } else {
-          loginSelf.serverErrorMessage(data.error || 'ログインに失敗しました。');
+          loginSelf.serverErrorMessage(data.error || 'Login failed.');
         }
       })
       .catch(error => {
         console.error('Login error:', error);
-        loginSelf.serverErrorMessage('エラーが発生しました。');
+        loginSelf.serverErrorMessage('An error has occurred.');
       })
       .finally(() => {
         loginSelf.isLoading(false);
@@ -77,24 +77,24 @@ function AppViewModel() {
     regSelf.usernameError = ko.computed(() => {
       const u = regSelf.username();
       var error = null;
-      if (u.length > 0 && u.length < 3) error = 'IDは3文字以上で入力してください。';
-      if (u.length > 50) error = 'IDは50文字以内で入力してください。';
+      if (u.length > 0 && u.length < 3) error = 'Please use an ID at least 3 characters.';
+      if (u.length > 50) error = 'Please use an ID under 50 characters.';
       return error;
     });
 
     regSelf.passwordError = ko.computed(() => {
       const p = regSelf.password();
       var error = null;
-      if (p.length > 0 && !/^[a-zA-Z0-9]+$/.test(p)) error = 'パスワードを正しく入力してください。';
-      if (p.length > 0 && p.length < 8) error = 'パスワードを正しく入力してください。';
-      if (p.length > 15) error = 'パスワードを正しく入力してください。';
+      if (p.length > 0 && !/^[a-zA-Z0-9]+$/.test(p)) error = 'Please use only alphanumeric characters for your password.';
+      if (p.length > 0 && p.length < 8) error = 'Please use a password at least 8 characters.';
+      if (p.length > 15) error = 'Please use a password under 15 characters.';
       return error;
     });
 
     regSelf.passwordConfirmError = ko.computed(() => {
       var error = null;
       if (regSelf.passwordConfirm().length > 0 && regSelf.password() !== regSelf.passwordConfirm()) {
-        error = 'パスワードが一致しません。';
+        error = 'Passwords do not match.';
       }
       return error;
     });

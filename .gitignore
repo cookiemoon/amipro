@@ -16,15 +16,8 @@ desktop.ini
 
 # the composer package lock file and install directory
 /composer.lock
-/fuel/vendor
 
 # any of the fuel packages installed by default
-/fuel/core/
-/fuel/packages/auth/
-/fuel/packages/email/
-/fuel/packages/oil/
-/fuel/packages/orm/
-/fuel/packages/parser/
 /public/docs/
 
 # dynamically generated files
@@ -33,4 +26,4 @@ desktop.ini
 /fuel/app/config/crypt.php
 
 # local development config files
-/fuel/app/config/development/*
+/fuel/app/config/development/migrations.php
