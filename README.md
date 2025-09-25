@@ -7,7 +7,6 @@ Amipro uses FuelPHP and Knockout.js, and can be set up with a local environment 
 ## Requirements
 
 - Docker & Docker Compose
-- Git
 - Browser（Chrome / Firefox recommended）
 
 ---
