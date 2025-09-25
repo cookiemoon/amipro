@@ -19,7 +19,7 @@ function AppViewModel() {
       return loginSelf.username().length > 0 &&
            loginSelf.password().length > 0
     });
-    loginSelf.buttonText = ko.computed(() => loginSelf.isLoading() ? '...' : '続く');
+    loginSelf.buttonText = ko.computed(() => loginSelf.isLoading() ? '...' : 'Continue');
 
     loginSelf.loginUser = function() {
       if (!loginSelf.isValid()) return;
@@ -72,7 +72,7 @@ function AppViewModel() {
     regSelf.passwordConfirm = ko.observable('');
     regSelf.serverErrorMessage = ko.observable(null);
     regSelf.isLoading = ko.observable(false);
-    regSelf.buttonText = ko.computed(() => regSelf.isLoading() ? '...' : '続く');
+    regSelf.buttonText = ko.computed(() => regSelf.isLoading() ? '...' : 'Continue');
 
     regSelf.usernameError = ko.computed(() => {
       const u = regSelf.username();
@@ -108,7 +108,7 @@ function AppViewModel() {
            !regSelf.passwordConfirmError();
     });
     
-    regSelf.buttonText = ko.computed(() => regSelf.isLoading() ? '...' : '続く');
+    regSelf.buttonText = ko.computed(() => regSelf.isLoading() ? '...' : 'Continue');
     regSelf.registerUser = function() {
       if (!regSelf.isValid()) return;
 
