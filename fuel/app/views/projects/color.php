@@ -10,12 +10,12 @@
   <div class="navigation-tabs">
     <a href="<?php echo Uri::create('projects/detail/'.$project["id"]); ?>"
     class="tab">
-      <p>詳細情報</p>
+      <p>Details</p>
     </a>
 
     <a href="<?php echo Uri::create('projects/color/'.$project["id"]); ?>"
        class="tab active">
-      <p>カラーチャート</p>
+      <p>Colorwork</p>
     </a>
   </div>
 
@@ -37,17 +37,17 @@
         <img data-bind="attr: { src: project().colorwork_url }" class="colorwork-image">
         <!-- /ko -->
         <!-- ko ifnot: project().colorwork_url -->
-        <p class="no-image-text">カラーチャート画像がありません。</p>
+        <p class="no-image-text">No colorwork image.</p>
         <!-- /ko -->
       </div>
 
       <!-- Custom mode -->
       <div data-bind="visible: mode() === 'custom'" class="custom-chart-area">
         <div class="controls">
-          <label>幅: <input type="number" min="1" max="50" data-bind="value: width, 
+          <label>Width: <input type="number" min="1" max="50" data-bind="value: width, 
                                       valueUpdate: 'afterkeydown',
                                       event: { change: updateChart }"></label>
-          <label>高さ: <input type="number" min="1" max="50" data-bind="value: height,
+          <label>Height: <input type="number" min="1" max="50" data-bind="value: height,
                                       valueUpdate: 'afterkeydown',
                                       event: { change: updateChart }"></label>
 
@@ -57,12 +57,12 @@
             <label>
               <input type="radio" name="stitchShape" value="square"
                 data-bind="checked: stitchShape">
-              四角
+              Square
             </label>
             <label>
               <input type="radio" name="stitchShape" value="knit" 
                 data-bind="checked: stitchShape">
-              表目
+              Stitch
             </label>
           </div>
         </div>
@@ -82,21 +82,21 @@
         </div>
 
         <div class="controls">
-          <button class="controls-btn" data-bind="click: clearChart">クリア</button>
-          <button class="controls-btn" data-bind="click: saveChart">保存</button>
+          <button class="controls-btn" data-bind="click: clearChart">Clear</button>
+          <button class="controls-btn" data-bind="click: saveChart">Save</button>
         </div>
 
       </div>
     </div>
 
     <div class="row-controls">
-      <p>段数</p>
+      <p>Rows</p>
       <div class="row-counter">
           <button class="minus" data-bind="click: decrementRow">−</button>
           <span class="rows" data-bind="text: rowCount"></span>
           <button class="plus" data-bind="click: incrementRow">＋</button>
       </div>
-      <button class="controls-btn" data-bind="click: saveRow">保存</button>
+      <button class="controls-btn" data-bind="click: saveRow">Save</button>
     </div>
   </div>
 </div>

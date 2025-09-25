@@ -10,12 +10,12 @@
   <div class="navigation-tabs">
     <a href="<?php echo Uri::create('projects/detail/'.$project["id"]); ?>"
     class="tab active">
-      <p>詳細情報</p>
+      <p>Details</p>
     </a>
 
     <a href="<?php echo Uri::create('projects/color/'.$project["id"]); ?>"
        class="tab">
-      <p>カラーチャート</p>
+      <p>Colorwork</p>
     </a>
   </div>
 
@@ -56,15 +56,15 @@
         </div>
 
         <div class="div-spacer"></div>
-        <p><span data-bind="text: project().created_text + '開始'"></span></p>
+        <p><span data-bind="text: 'Started: ' + project().created_text"></span></p>
         <!-- ko if: project().status == 3 && project().completed_at -->
         <div class="elem-spacer"></div>
-        <p><span data-bind="text: project().completed_text + '完了'"></span></p>
+        <p><span data-bind="text: 'Completed: ' + project().completed_text"></span></p>
         <!-- /ko -->
 
         <div class="div-spacer"></div>
         <!-- ko if: project().yarn_name && project().yarn_name.length > 0 -->
-        <p>毛糸:</p>
+        <p>Yarn:</p>
         <ul data-bind="foreach: project().yarn_name">
           <li data-bind="text: $data"></li>
         </ul>
@@ -84,8 +84,8 @@
 
       <!-- Actions -->
       <div class="project-actions">
-        <a href="#" class="edit-link" data-bind="click: openModal">編集</a>
-        <a href="#" class="delete-link" data-bind="click: deleteProject">削除</a>
+        <a href="#" class="edit-link" data-bind="click: openModal">Edit</a>
+        <a href="#" class="delete-link" data-bind="click: deleteProject">Delete</a>
       </div>
     </div>
 
@@ -93,7 +93,7 @@
     <div class="bottom-section">
       <!-- ko if: project().memo && project().memo.length > 0 -->
       <div class="memo-box">
-        <h3>メモ:</h3>
+        <h3>Memo:</h3>
         <p data-bind="text: project().memo"></p>
       </div>
       <!-- /ko -->
@@ -104,43 +104,43 @@
 
       <!-- Row counter -->
       <div class="row-controls">
-        <p>段数</p>
+        <p>Rows</p>
         <div class="row-counter">
           <button class="minus" data-bind="click: decrementRow">−</button>
           <span class="rows" data-bind="text: rowCount"></span>
           <button class="plus" data-bind="click: incrementRow">＋</button>
         </div>
-        <button class="controls-btn" data-bind="click: saveRow">保存</button>
+        <button class="controls-btn" data-bind="click: saveRow">Save</button>
       </div>
     </div>
   </div>
 
   <div class="modal-overlay" data-bind="visible: showModal">
     <div class="modal-window">
-      <h2>プロジェクトを編集</h2>
+      <h2>Edit Project</h2>
 
       <form>
         <label>
-          プロジェクト名: <span class="required">*</span>
+          Name: <span class="required">*</span>
           <input type="text" data-bind="value: toEdit.name" maxlength="32">
         </label>
 
         <!-- Object Type -->
         <label>
-          プロジェクトタイプ: <span class="required">*</span>
+          Type: <span class="required">*</span>
           <input type="text" data-bind="value: toEdit.objectType" placeholder="例: セーター" maxlength="10">
         </label>
 
         <!-- Techniques -->
         <label>
-          技法 (選択可能):
+          Technique (Multiple selection):
 
           <!-- Free input for custom technique -->
           <div class="custom-technique-input">
-            <input type="text" placeholder="カスタム技法を追加"
+            <input type="text" placeholder="Add custom technique..."
               data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }"
               maxlength="255">
-            <button type="button" data-bind="click: addCustomTechnique">追加</button>
+            <button type="button" data-bind="click: addCustomTechnique">Add</button>
           </div>
 
 
@@ -155,13 +155,13 @@
 
         <div class="completion-date-container">
           <label>
-            開始日:
+            Start Date:
             <input type="date" data-bind="value: toEdit.startDate">
           </label>
         </div>
 
         <label>
-          状態:
+          Status:
           <select data-bind="value: toEdit.status">
             <!-- ko foreach: statusOptions -->
             <option data-bind="value: value, text: label"></option>
@@ -172,7 +172,7 @@
         <!-- Progress slider for 進行中 or 中断中 -->
         <div class="progress-container" data-bind="visible: showProgress">
           <label>
-            進捗 (%):
+            Progress (%):
             <input type="range" min="0" max="100" data-bind="value: toEdit.progress">
             <span data-bind="text: toEdit.progress"></span>%
           </label>
@@ -181,17 +181,17 @@
         <!-- Completion date picker for 完了 -->
         <div class="completion-date-container" data-bind="visible: showCompletionDate">
           <label>
-            完了日:
+            Completion Date:
             <input type="date" data-bind="value: toEdit.completionDate">
           </label>
         </div>
 
         <!-- Yarn Selection -->
         <label>
-          毛糸:
+          Yarn:
           <div class="searchable-dropdown">
             <input type="text"
-              placeholder="毛糸を検索..."
+              placeholder="Enter name..."
               data-bind="value: yarnSearch, valueUpdate: 'afterkeydown'">
 
             <ul data-bind="foreach: filteredYarns, visible: dropdownOpen">
@@ -204,7 +204,7 @@
             </ul>
 
             <div class="no-results" data-bind="visible: yarnSearch() && filteredYarns().length === 0">
-              使える毛糸が見つかりません。
+              No yarn found.
             </div>
           </div>
         </label>
@@ -223,38 +223,38 @@
         </div>
 
         <!-- Memo -->
-        <label>メモ:</label>
+        <label>Memo:</label>
         <textarea data-bind="value: toEdit.memo" 
-            placeholder="ここに自由にメモを入力できます..."
+            placeholder="Please enter details about the project..."
             rows="6"></textarea>
 
         <!-- Screenshot -->
         <label>
-          スクリーンショットURL:
+          Screenshot URL:
           <input type="text" data-bind="value: toEdit.screenshotUrl" placeholder="https://example.com/image.jpg">
         </label>
 
         <!-- Live preview -->
         <div class="screenshot-preview" data-bind="visible: screenshotPreview">
-          <p>プレビュー:</p>
-          <img data-bind="attr: { src: screenshotPreview }" alt="スクリーンショットプレビュー">
+          <p>Preview:</p>
+          <img data-bind="attr: { src: screenshotPreview }" alt="Image preview">
         </div>
 
         <!-- Colorwork -->
         <label>
-          カラーチャートURL:
+          Colorwork URL:
           <input type="text" data-bind="value: toEdit.colorworkUrl" placeholder="https://example.com/image.jpg">
         </label>
 
         <!-- Live preview -->
         <div class="colorwork-preview" data-bind="visible: colorworkScreenshotPreview">
-          <p>プレビュー:</p>
-          <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="スクリーンショットプレビュー">
+          <p>Preview:</p>
+          <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="Image preview">
         </div>
 
         <div class="modal-actions">
-        <button type="button" data-bind="click: submitToEdit, enable: isFormValid">保存</button>
-        <button type="button" data-bind="click: closeModal">キャンセル</button>
+        <button type="button" data-bind="click: submitToEdit, enable: isFormValid">Save</button>
+        <button type="button" data-bind="click: closeModal">Cancel</button>
         </div>
       </form>
     </div>

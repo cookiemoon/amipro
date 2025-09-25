@@ -148,6 +148,8 @@ body {
   text-decoration: none;
   border-radius: 4px;
   font-size: 1rem;
+  width: 80px;
+  text-align: center;
 }
 
 .plus,

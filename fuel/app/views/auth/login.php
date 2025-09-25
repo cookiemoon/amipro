@@ -1,7 +1,7 @@
 <div class="container" data-bind="with: login">
 
   <main class="main-content">
-    <h2 class="login-title">ログイン</h2>
+    <h2 class="login-title">Login</h2>
 
     <div class="alert alert-error" data-bind="html: serverErrorMessage, visible: serverErrorMessage"></div>
     
@@ -14,15 +14,15 @@
       <div class="input-group password">
         <input type="password" class="form-input" id="password" placeholder=" " required 
              data-bind="value: password">
-        <label for="password" class="form-label">パスワード</label>
+        <label for="password" class="form-label">Password</label>
       </div>
       <button type="submit" class="continue-button" data-bind="text: buttonText, disable: isLoading() || !isValid()"></button>
     </form>
 
     <div class="registration-link">
-      <span>未登録の方は</span>
-      <a href="<?php echo \Uri::create('auth/register'); ?>" class="gradient-text">新登録ページ</a>
-      <span>へ</span>
+      <span>If you do not have an account, please proceed to the </span>
+      <a href="<?php echo \Uri::create('auth/register'); ?>" class="gradient-text">registration page</a>
+      <span>.</span>
     </div>
   </main>
 </div>

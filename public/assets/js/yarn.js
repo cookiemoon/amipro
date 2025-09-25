@@ -36,7 +36,7 @@ function AppViewModel(initialData) {
     self.availableWeights = Object.entries(data.filters.weight || {}).map(([key, name]) => ({ key, name }));
     self.availableFibers = Object.entries(data.filters.fiber || {}).map(([key, name]) => ({ key, name }));
 
-    self.weightSelection = self.availableWeights.filter(w => w.key !== '全件');
+    self.weightSelection = self.availableWeights.filter(w => w.key !== 'All');
 
     // --- New Yarn Form ---
     self.newYarn = {
@@ -133,9 +133,9 @@ function AppViewModel(initialData) {
       formData.append('project', self.newYarn.project());
       formData.append('color', self.newYarn.color().trim());
       formData.append('weight', self.newYarn.weight() ? self.newYarn.weight() : '');
-      formData.append('fiber_animal', self.newYarn.fibers().includes('動物性繊維'));
-      formData.append('fiber_plant', self.newYarn.fibers().includes('植物繊維'));
-      formData.append('fiber_synthetic', self.newYarn.fibers().includes('合成繊維'));
+      formData.append('fiber_animal', self.newYarn.fibers().includes('Animal'));
+      formData.append('fiber_plant', self.newYarn.fibers().includes('Plant'));
+      formData.append('fiber_synthetic', self.newYarn.fibers().includes('Synthetic'));
       formData.append('fiber_desc', self.newYarn.fiberDesc().trim());
       formData.append('project_id', self.newYarn.project());
 
@@ -152,21 +152,14 @@ function AppViewModel(initialData) {
           updateToken(data.new_csrf_token);
         }
         if (data.success) {
-          if (isEdit) {
-            alert("毛糸を更新しました。");
-          } else {
-            alert("毛糸を追加しました。");
-          }
           self.hideModal();
           self.loadYarns();
         } else {
-          alert("保存に失敗しました。");
-          console.error("Yarn error:",data.error);
+          alert("Error saving yarn.");
         }
       })
       .catch(error => {
-        alert("エラーが発生しました。");
-        console.error('Yarn error:', error);
+        alert("Error saving yarn.");
       })
     };
   
@@ -200,7 +193,7 @@ function AppViewModel(initialData) {
     
         // Weight filter
         const matchesWeight = self.selectedWeights().length === 0 || 
-          self.selectedWeights().includes('全件') ||
+          self.selectedWeights().includes('All') ||
           self.selectedWeights().includes(p.weight);
     
         // Fibers filter
@@ -236,15 +229,13 @@ function AppViewModel(initialData) {
           updateToken(data.new_csrf_token);
         }
         if (data.success) {
-          alert("毛糸を削除しました。");
           self.yarns.remove(yarn);
         } else {
-          alert("削除に失敗しました。");
+          alert("Error deleting yarn.");
         }
       })
       .catch(err => {
-        console.error('Error deleting yarn:', err);
-        alert("エラーが発生しました。");
+        alert("Error deleting yarn.");
       });
     };
 

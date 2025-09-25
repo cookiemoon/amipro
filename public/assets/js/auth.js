@@ -132,15 +132,14 @@ function AppViewModel() {
           updateToken(data.new_csrf_token);
         }
         if (data.success) {
-          alert("アカウントが正常に作成されました。");
           window.location.href = `${baseUrl}projects`;
         } else {
-          regSelf.serverErrorMessage(data.error || '登録に失敗しました。');
+          regSelf.serverErrorMessage(data.error || 'Error registering user.');
         }
       })
       .catch(error => {
         console.error('Registration error:', error);
-        regSelf.serverErrorMessage('エラーが発生しました。');
+        regSelf.serverErrorMessage('Error registering user.');
       })
       .finally(() => {
         regSelf.isLoading(false);

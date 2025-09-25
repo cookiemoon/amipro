@@ -85,8 +85,8 @@ class Model_Project extends \Orm\Model
   // プロジェクト情報を表示用にフォーマット
   protected static function format_project_for_display($project, $detail = false)
   {
-    $status_map = [0 => '未着手', 1 => '進行中', 2 => '中断中', 3 => '完了', 4 => '放棄'];
-    $status_text = $status_map[$project->status] ?? '不明';
+    $status_map = [0 => 'Not started', 1 => 'In progress', 2 => 'Hiatus', 3 => 'Completed', 4 => 'Abandoned'];
+    $status_text = $status_map[$project->status] ?? 'Unknown';
 
     if (($project->status == 1 || $project->status == 2) && $project->progress > 0) {
       $status_text .= ': ' . $project->progress . '%';
@@ -139,7 +139,10 @@ class Model_Project extends \Orm\Model
         }
 
         if ($count > 1) {
-          $yarn_name .= ' 他' . ($count - 1) . '玉';
+          $yarn_name .= ' and ' . ($count - 1) . ' other';
+          if ($count - 1 > 1) {
+            $yarn_name .= 's';
+          }
         }
       }
     }
@@ -153,8 +156,8 @@ class Model_Project extends \Orm\Model
       'progress' => $project->progress,
       'created_at' => $project->created_at ? date('Y-m-d', strtotime($project->created_at)) : null,
       'completed_at' => $project->completed_at ? date('Y-m-d', strtotime($project->completed_at)) : null,
-      'created_text' => $project->created_at ? date('Y年m月d日', strtotime($project->created_at)) : null,
-      'completed_text' => $project->completed_at ? date('Y年m月d日', strtotime($project->completed_at)) : null,
+      'created_text' => $project->created_at ? date('d/m/Y', strtotime($project->created_at)) : null,
+      'completed_text' => $project->completed_at ? date('d/m/Y', strtotime($project->completed_at)) : null,
       'status' => $project->status,
       'technique_names' => $technique_names,
       'memo' => $project->memo,
@@ -186,7 +189,7 @@ class Model_Project extends \Orm\Model
       ->as_array();
     
     $types = array_column($result, 'object_type');
-    array_unshift($types, '全件');
+    array_unshift($types, 'All');
 
     return array_combine($types, $types);
   }

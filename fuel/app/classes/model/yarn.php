@@ -71,9 +71,9 @@ class Model_Yarn extends \Orm\Model
   protected static function get_fiber_types()
   {
     return [
-      '動物性繊維' => '動物性繊維',
-      '植物繊維' => '植物繊維',
-      '合成繊維' => '合成繊維',
+      'Animal' => 'Animal',
+      'Plant' => 'Plant',
+      'Synthetic' => 'Synthetic',
     ];
   }
 
@@ -81,14 +81,14 @@ class Model_Yarn extends \Orm\Model
   protected static function get_yarn_weights()
   {
     return [
-      '全件' => '全件',
-      '極細' => '極細',
-      '合細' => '合細',
-      '中細' => '中細',
-      '合太' => '合太',
-      '並太' => '並太',
-      '極太' => '極太',
-      '超極太' => '超極太',
+      'All' => 'All',
+      'Superfine' => 'Superfine',
+      'Fine' => 'Fine',
+      'Light' => 'Light',
+      'Medium' => 'Medium',
+      'Bulky' => 'Bulky',
+      'Super Bulky' => 'Super Bulky',
+      'Jumbo' => 'Jumbo',
     ];
   }
 
@@ -107,13 +107,13 @@ class Model_Yarn extends \Orm\Model
     $fiber_types = [];
 
     if ($yarn->fiber_animal) {
-      $fiber_types[] = '動物性繊維';
+      $fiber_types[] = 'Animal';
     }
     if ($yarn->fiber_plant) {
-      $fiber_types[] = '植物繊維';
+      $fiber_types[] = 'Plant';
     }
     if ($yarn->fiber_synthetic) {
-      $fiber_types[] = '合成繊維';
+      $fiber_types[] = 'Synthetic';
     }
 
     return [
@@ -121,10 +121,10 @@ class Model_Yarn extends \Orm\Model
       'name' => $yarn->name,
       'brand' => $yarn->brand,
       'color' => $yarn->color,
-      'weight' => $yarn->weight ? $yarn->weight : "不明",
+      'weight' => $yarn->weight ? $yarn->weight : "Unknown",
       'fiber_types' => $fiber_types,
       'fiber_desc' => $yarn->fiber_desc,
-      'project_name' => $yarn->project ? $yarn->project->name : "未登録",
+      'project_name' => $yarn->project ? $yarn->project->name : "Unregistered",
       'project_id' => $yarn->project ? $yarn->project->id : null,
     ];
   }

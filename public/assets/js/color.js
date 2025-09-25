@@ -91,7 +91,7 @@ function ColorworkViewModel(projectId) {
   });
 
   self.modeLabel = ko.computed(() => {
-    return self.mode() === "screenshot" ? "スクショ" : "カスタム";
+    return self.mode() === "screenshot" ? "Screenshot" : "Custom Chart";
   });
 
   // --- Custom chart ---
@@ -181,9 +181,9 @@ function ColorworkViewModel(projectId) {
         updateToken(data.new_csrf_token);
       }
       if (data.success) {
-        alert("チャート保存しました。");
+        alert("Chart saved successfully.");
       } else {
-        alert("エラーが発生しました。");
+        alert("Error saving chart.");
       }
     });
   };
@@ -203,9 +203,9 @@ function ColorworkViewModel(projectId) {
         updateToken(data.new_csrf_token);
       }
       if (data.success) {
-        alert("段数カウンター保存しました。");
+        alert("Row count saved successfully.");
       } else {
-        alert("エラーが発生しました。");
+        alert("Error saving row count.");
       }
     });
   };

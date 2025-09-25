@@ -105,11 +105,11 @@ function AppViewModel(initialData) {
 
     // Status & progress options
     self.statusOptions = [
-      { value: 0, label: '未着手' },
-      { value: 1, label: '進行中' },
-      { value: 2, label: '中断中' },
-      { value: 3, label: '完了' },
-      { value: 4, label: '放棄' }
+      { value: 0, label: 'Not started' },
+      { value: 1, label: 'In progress' },
+      { value: 2, label: 'Hiatus' },
+      { value: 3, label: 'Completed' },
+      { value: 4, label: 'Abandoned' }
     ];
 
     self.newProject.status = ko.observable(0);
@@ -126,7 +126,7 @@ function AppViewModel(initialData) {
 
     // Techniques options
     self.suggestedTechniques = ko.observableArray([
-      'ビーズ', 'ケーブル編み', '配色編み', 'かぎ針編み', '引き返し編み', 'レース', 'リブ編み'
+      'Beads', 'Cabling', 'Colorwork', 'Crochet', 'Short rows', 'Lace', 'Ribbing'
     ]);
 
     const mergedTechniques = [...self.suggestedTechniques(), ...self.availableTechniques.map(t => {
@@ -221,7 +221,6 @@ function AppViewModel(initialData) {
           updateToken(data.new_csrf_token);
         }
         if (data.success) {
-          alert("プロジェクトを作成しました。");
           self.hideModal();
           window.location.href = `${baseUrl}projects/detail/${data.project_id}`;
         } else {
@@ -265,7 +264,7 @@ function AppViewModel(initialData) {
     
         // Type filter
         const matchesType = self.selectedTypes().length === 0 ||
-          self.selectedTypes().includes('全件') ||
+          self.selectedTypes().includes('All') ||
           self.selectedTypes().includes(p.object_type);
     
         // Techniques filter

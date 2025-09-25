@@ -48,7 +48,6 @@ function ProjectDetailViewModel(projectId) {
         updateToken(data.new_csrf_token);
       }
       if (data.success) {
-        alert("プロジェクトを削除しました。");
         window.location.href = `${baseUrl}projects`;
       }
     })
@@ -204,23 +203,22 @@ function ProjectDetailViewModel(projectId) {
         updateToken(data.new_csrf_token);
       }
       if (data.success) {
-        alert("プロジェクトを更新しました。");
         self.availableYarnsBackup = self.availableYarns();
         self.showModal(false);
         self.loadProject();
       } else {
-        alert("エラーが発生しました。");
+        alert("Error editing project.");
       }
     })
     .catch(err => console.error("Error editing project:", err));
   };
 
   self.statusOptions = [
-    { value: 0, label: '未着手' },
-    { value: 1, label: '進行中' },
-    { value: 2, label: '中断中' },
-    { value: 3, label: '完了' },
-    { value: 4, label: '放棄' }
+    { value: 0, label: 'Not started' },
+    { value: 1, label: 'In progress' },
+    { value: 2, label: 'Hiatus' },
+    { value: 3, label: 'Completed' },
+    { value: 4, label: 'Abandoned' }
   ];
   
   // Custom techniques handling
@@ -264,9 +262,9 @@ function ProjectDetailViewModel(projectId) {
         updateToken(data.new_csrf_token);
       }
       if (data.success) {
-        alert("段数カウンター保存しました。");
+        alert("Row count saved successfully.");
       } else {
-        alert("エラーが発生しました。");
+        alert("Error saving row count.");
       }
     });
   };

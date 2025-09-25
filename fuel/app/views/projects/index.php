@@ -3,7 +3,7 @@
   <!-- Header -->
   <div class="header">
     <div class="header-content">
-      <h1>あみぷろ</h1>
+      <h1>amipro</h1>
     </div>
   </div>
 
@@ -12,13 +12,13 @@
     <a href="<?php echo Uri::create('projects'); ?>"
     class="tab project-tab active">
       <div class="tab-background"></div>
-      <div class="tab-content"><p>プロジェクト</p></div>
+      <div class="tab-content"><p>Projects</p></div>
     </a>
 
     <a href="<?php echo Uri::create('projects/yarn'); ?>"
        class="tab yarn-tab">
       <div class="tab-background"></div>
-      <div class="tab-content"><p>毛糸</p></div>
+      <div class="tab-content"><p>Yarns</p></div>
     </a>
   </div>
 
@@ -29,20 +29,20 @@
     <div class="sticky-wrapper">
       <div class="controls-section">
         <div class="search-container">
-          <input type="text" class="search-input" placeholder="探索..."
+          <input type="text" class="search-input" placeholder="Search..."
             data-bind="value: currentPageViewModel().searchQuery, valueUpdate: 'input'">
         </div>
         <div class="filter-container">
           <button class="filter-toggle"
               data-bind="click: currentPageViewModel().toggleFilterPanel">
-            フィルター
+            Filter
           </button>
         </div>
       </div>
 
       <!-- Filter Panel -->
       <div class="filter-panel" data-bind="visible: currentPageViewModel().filterPanelVisible">
-        <h3>プロジェクトタイプ</h3>
+        <h3>Type</h3>
         <div class="filter-group" data-bind="foreach: currentPageViewModel().availableTypes">
           <label>
             <input type="radio" data-bind="checked: $parent.currentPageViewModel().selectedTypes, value: name">
@@ -50,7 +50,7 @@
           </label>
         </div>
 
-        <h3>編み技法</h3>
+        <h3>Technique</h3>
         <div class="filter-group" data-bind="foreach: currentPageViewModel().availableTechniques">
           <label>
             <input type="checkbox" data-bind="checked: $parent.currentPageViewModel().selectedTechniques, value: name">
@@ -79,7 +79,7 @@
 
           <!-- ko if: yarn_name -->
           <p class="project-status">
-            <strong>毛糸:</strong> <span data-bind="text: yarn_name"></span>
+            <strong>Yarn:</strong> <span data-bind="text: yarn_name"></span>
           </p>
           <!-- /ko -->
 
@@ -94,46 +94,46 @@
           <!-- /ko -->
         </div>
 
-        <a data-bind="attr: { href: detail_url }" class="detail-link">詳細</a>
+        <a data-bind="attr: { href: detail_url }" class="detail-link">Details</a>
       </div>
     </div>
 
     <!-- Empty state -->
     <div class="empty-state" data-bind="visible: currentPageViewModel().filteredProjects().length === 0">
-      <p>プロジェクトがありません。</p>
-      <a href="#" class="create-project-link" data-bind="click: currentPageViewModel().showModal">新しいプロジェクトを作成</a>
+      <p>No projects found.</p>
+      <a href="#" class="create-project-link" data-bind="click: currentPageViewModel().showModal">Create a project</a>
     </div>
 
   </div>
 
   <!-- Floating Action Button -->
   <div class="create-project-fab">
-    <a href="#" class="fab-button" title="新しいプロジェクト" data-bind="click: currentPageViewModel().showModal">+</a>
+    <a href="#" class="fab-button" title="New project" data-bind="click: currentPageViewModel().showModal">+</a>
   </div> 
 
   <div class="logout">
-    <a href="#" class="logout-button" data-bind="click: currentPageViewModel().logout">ログアウト</a>
+    <a href="#" class="logout-button" data-bind="click: currentPageViewModel().logout">Log Out</a>
   </div>
 
   <div class="modal-overlay" data-bind="visible: currentPageViewModel() && currentPageViewModel().showCreateModal">
     <div class="modal-window" data-bind="with: currentPageViewModel()">
-      <h2>新しいプロジェクトを作成</h2>
+      <h2>Create Project</h2>
 
       <form>
         <label>
-          プロジェクト名: <span class="required">*</span>
+          Name: <span class="required">*</span>
           <input type="text" data-bind="value: newProject.name" maxlength="32">
         </label>
 
         <!-- Object Type -->
         <label>
-          プロジェクトタイプ: <span class="required">*</span>
-          <input type="text" data-bind="value: newProject.objectType" placeholder="例: セーター" maxlength="10">
+          Type: <span class="required">*</span>
+          <input type="text" data-bind="value: newProject.objectType" placeholder="Example: Sweater, Scarf, Shawl..." maxlength="10">
         </label>
 
         <!-- Techniques -->
         <label>
-          技法 (選択可能):
+          Techniques (Multiple selection):
           <div class="techniques-container" data-bind="click: function() { }">
             <!-- ko foreach: suggestedTechniques -->
             <button type="button"
@@ -147,10 +147,10 @@
 
           <!-- Free input for custom technique -->
           <div class="custom-technique-input">
-            <input type="text" placeholder="カスタム技法を追加"
+            <input type="text" placeholder="Add custom technique..."
               data-bind="value: newTechniqueInput, valueUpdate: 'afterkeydown', event: { keyup: function(data, event) { if(event.key === 'Enter') { addCustomTechnique(); } } }"
               maxlenght="255">
-            <button type="button" data-bind="click: addCustomTechnique">追加</button>
+            <button type="button" data-bind="click: addCustomTechnique">Add</button>
           </div>
 
 
@@ -165,13 +165,13 @@
 
         <div class="completion-date-container">
           <label>
-            開始日:
+            Start Date:
             <input type="date" data-bind="value: newProject.startDate">
           </label>
         </div>
 
         <label>
-          状態:
+          Status:
           <select data-bind="value: newProject.status">
             <!-- ko foreach: statusOptions -->
             <option data-bind="value: value, text: label"></option>
@@ -182,7 +182,7 @@
         <!-- Progress slider for 進行中 or 中断中 -->
         <div class="progress-container" data-bind="visible: showProgress">
           <label>
-            進捗 (%):
+            Progress (%):
             <input type="range" min="0" max="100" data-bind="value: newProject.progress">
             <span data-bind="text: newProject.progress"></span>%
           </label>
@@ -191,17 +191,17 @@
         <!-- Completion date picker for 完了 -->
         <div class="completion-date-container" data-bind="visible: showCompletionDate">
           <label>
-            完了日:
+            Completion Date:
             <input type="date" data-bind="value: newProject.completionDate">
           </label>
         </div>
 
         <!-- Yarn Selection -->
         <label>
-          毛糸:
+          Yarn:
           <div class="searchable-dropdown">
             <input type="text"
-              placeholder="毛糸を検索..."
+              placeholder="Enter name..."
               data-bind="value: yarnSearch, valueUpdate: 'afterkeydown'">
 
             <ul data-bind="foreach: filteredYarns, visible: dropdownOpen">
@@ -214,7 +214,7 @@
             </ul>
 
             <div class="no-results" data-bind="visible: yarnSearch() && filteredYarns().length === 0">
-              使える毛糸が見つかりません。
+              No yarn found.
             </div>
           </div>
         </label>
@@ -233,38 +233,38 @@
         </div>
 
         <!-- Memo -->
-        <label>メモ:</label>
+        <label>Memo:</label>
         <textarea data-bind="value: newProject.memo" 
-            placeholder="ここに自由にメモを入力できます..."
+            placeholder="Please enter details about the project..."
             rows="6"></textarea>
 
         <!-- Screenshot -->
         <label>
-          スクリーンショットURL:
+          Screenshot URL:
           <input type="text" data-bind="value: newProject.screenshotUrl" placeholder="https://example.com/image.jpg">
         </label>
 
         <!-- Live preview -->
         <div class="screenshot-preview" data-bind="visible: screenshotPreview">
-          <p>プレビュー:</p>
-          <img data-bind="attr: { src: screenshotPreview }" alt="スクリーンショットプレビュー">
+          <p>Preview:</p>
+          <img data-bind="attr: { src: screenshotPreview }" alt="Image preview">
         </div>
 
         <!-- Colorwork -->
         <label>
-          カラーチャートURL:
+          Colorwork URL:
           <input type="text" data-bind="value: newProject.colorworkUrl" placeholder="https://example.com/image.jpg">
         </label>
 
         <!-- Live preview -->
         <div class="colorwork-preview" data-bind="visible: colorworkScreenshotPreview">
-          <p>プレビュー:</p>
-          <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="スクリーンショットプレビュー">
+          <p>Preview:</p>
+          <img data-bind="attr: { src: colorworkScreenshotPreview }" alt="Image preview">
         </div>
 
         <div class="modal-actions">
-        <button type="button" data-bind="click: submitNewProject, enable: isFormValid">作成</button>
-        <button type="button" data-bind="click: cancelCreate">キャンセル</button>
+        <button type="button" data-bind="click: submitNewProject, enable: isFormValid">Save</button>
+        <button type="button" data-bind="click: cancelCreate">Cancel</button>
         </div>
       </form>
     </div>
